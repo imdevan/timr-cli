@@ -47,30 +47,20 @@ EOF
   echo "  ✓ Updated config.mjs with package metadata"
 fi
 
+echo "🔧 Detecting Cobra commands..."
+COMMANDS_JSON=$(go run "${ROOT_DIR}/scripts/parse_commands.go" "$CMD_DIR")
+num_cmds=$(echo "$COMMANDS_JSON" | jq '. | length')
+
 echo "🔧 Generating sidebar configuration..."
 
 # Detect commands from cmd directory
 COMMANDS=""
-if [ -d "$CMD_DIR" ]; then
-  for cmd_file in "$CMD_DIR"/*.go; do
-    # Skip test files, main.go, and root.go
-    if [[ "$cmd_file" == *"_test.go" ]] || [[ "$cmd_file" == *"/main.go" ]] || [[ "$cmd_file" == *"/root.go" ]]; then
-      continue
-    fi
-
-    # Extract command name from filename (e.g., config.go -> config, delete_cmd.go -> delete)
-    cmd_name=$(basename "$cmd_file" .go | sed 's/_cmd$//')
-
-    # Convert underscores to spaces for display (e.g., config_init -> config init)
-    cmd_display=$(echo "$cmd_name" | sed 's/_/ /g')
-
-    # Convert underscores to hyphens for URL (e.g., config_init -> config-init)
-    cmd_url=$(echo "$cmd_name" | sed 's/_/-/g')
-
-    COMMANDS="${COMMANDS}            { label: '${cmd_display}', link: '/commands/${cmd_url}' },
+for ((i=0; i<num_cmds; i++)); do
+  cmd_info=$(echo "$COMMANDS_JSON" | jq -c ".[$i]")
+  cmd_name=$(echo "$cmd_info" | jq -r '.cmd_name')
+  COMMANDS="${COMMANDS}            { label: '${cmd_name}', link: '/commands/${cmd_name}' },
 "
-  done
-fi
+done
 
 # Detect API packages
 API_PACKAGES=""
@@ -299,23 +289,14 @@ EOF
   echo "" >>"${DOCS_CONTENT_DIR}/commands/${PROJECT_NAME}.md"
 
   # List all subcommands
-  for cmd_file in "$CMD_DIR"/*.go; do
-    if [[ "$cmd_file" == *"_test.go" ]] || [[ "$cmd_file" == *"/main.go" ]] || [[ "$cmd_file" == *"/root.go" ]]; then
-      continue
+  for ((i=0; i<num_cmds; i++)); do
+    cmd_info=$(echo "$COMMANDS_JSON" | jq -c ".[$i]")
+    cmd_name=$(echo "$cmd_info" | jq -r '.cmd_name')
+    cmd_short=$(echo "$cmd_info" | jq -r '.short')
+    if [ -z "$cmd_short" ] || [ "$cmd_short" = "null" ]; then
+      cmd_short="$cmd_name"
     fi
-
-    cmd_name=$(basename "$cmd_file" .go | sed 's/_cmd$//')
-    cmd_display=$(echo "$cmd_name" | sed 's/_/ /g')
-    cmd_url=$(echo "$cmd_name" | sed 's/_/-/g')
-
-    # Extract Short description - handle both quoted strings and variables
-    cmd_short=$(awk '/Short:/ {
-      if (match($0, /Short: *"([^"]*)"/, arr)) {
-        print arr[1]
-      }
-    }' "$cmd_file" | head -1)
-
-    echo "- [\`${cmd_display}\`](/commands/${cmd_url}) - ${cmd_short}" >>"${DOCS_CONTENT_DIR}/commands/${PROJECT_NAME}.md"
+    echo "- [\`${cmd_name}\`](/commands/${cmd_name}) - ${cmd_short}" >>"${DOCS_CONTENT_DIR}/commands/${PROJECT_NAME}.md"
   done
 
   cat >>"${DOCS_CONTENT_DIR}/commands/${PROJECT_NAME}.md" <<EOF
@@ -329,59 +310,30 @@ EOF
 fi
 
 # Generate documentation for each command
-for cmd_file in "$CMD_DIR"/*.go; do
-  # Skip test files, main.go, and root.go
-  if [[ "$cmd_file" == *"_test.go" ]] || [[ "$cmd_file" == *"/main.go" ]] || [[ "$cmd_file" == *"/root.go" ]]; then
-    continue
-  fi
-
-  # Extract command name from filename
-  cmd_name=$(basename "$cmd_file" .go | sed 's/_cmd$//')
-  cmd_display=$(echo "$cmd_name" | sed 's/_/ /g')
-  cmd_url=$(echo "$cmd_name" | sed 's/_/-/g')
-
-  # Extract command information from the Go file using awk for better parsing
-  cmd_use=$(awk '/Use:/ {
-    if (match($0, /Use: *"([^"]*)"/, arr)) {
-      print arr[1]
-    }
-  }' "$cmd_file" | head -1)
-
-  cmd_short=$(awk '/Short:/ {
-    if (match($0, /Short: *"([^"]*)"/, arr)) {
-      print arr[1]
-    }
-  }' "$cmd_file" | head -1)
-
-  # Extract godoc comment (supports both // and /* */ style)
-  cmd_godoc=$(awk '
-    /^\/\*$/ {
-      in_block = 1
-      comment = ""
-      next
-    }
-    in_block && /\*\// {
-      in_block = 0
-      print comment
-      exit
-    }
-    in_block {
-      if (comment == "") {
-        comment = $0
-      } else {
-        comment = comment "\n" $0
-      }
-    }
-  ' "$cmd_file")
+for ((i=0; i<num_cmds; i++)); do
+  cmd_info=$(echo "$COMMANDS_JSON" | jq -c ".[$i]")
+  cmd_file=$(echo "$cmd_info" | jq -r '.go_file')
+  cmd_name=$(echo "$cmd_info" | jq -r '.cmd_name')
+  cmd_use=$(echo "$cmd_info" | jq -r '.use')
+  cmd_short=$(echo "$cmd_info" | jq -r '.short')
+  cmd_godoc=$(echo "$cmd_info" | jq -r '.doc')
+  
+  # Use cmd_name for filename and sidebar label
+  cmd_url="$cmd_name"
+  cmd_display="$cmd_name"
 
   # Use display name if Use is empty
-  if [ -z "$cmd_use" ]; then
+  if [ -z "$cmd_use" ] || [ "$cmd_use" = "null" ]; then
     cmd_use="$cmd_display"
   fi
 
   # Use display name if Short is empty
-  if [ -z "$cmd_short" ]; then
+  if [ -z "$cmd_short" ] || [ "$cmd_short" = "null" ]; then
     cmd_short="$cmd_display"
+  fi
+
+  if [ "$cmd_godoc" = "null" ]; then
+    cmd_godoc=""
   fi
 
   # Generate command documentation
