@@ -1,5 +1,4 @@
 ---
-title: config init
 description: Generate a default config file
 ---
 
@@ -8,7 +7,7 @@ Generate a default config file
 ## Usage
 
 ```bash
-go-cli-template config init
+go-cli-template init
 ```
 
 ## Flags

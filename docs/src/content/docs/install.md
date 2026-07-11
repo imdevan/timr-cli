@@ -1,5 +1,5 @@
 ---
-title: Install
+title: Installation
 description: Installation instructions for go-cli-template
 ---
 
@@ -49,3 +49,4 @@ cd go-cli-template
 just build
 sudo just install
 ```
+

@@ -3,7 +3,7 @@ const isProduction = stage === "production"
 
 export default {
   url: isProduction ? "https://devan.gg" : "http://localhost:4321",
-  basePath:  isProduction ? "/go-cli-template" : "/",
+  basePath: isProduction ? "/go-cli-template" : "/",
   github: "https://github.com/imdevan/go-cli-template/",
   githubDocs: "https://github.com/imdevan/go-cli-template/",
   title: "go-cli-template",

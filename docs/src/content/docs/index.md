@@ -92,9 +92,41 @@ After syncing, add your own commands under `cmd/`, domain types under `internal/
 
 Documentation is built with [Astro Starlight](https://starlight.astro.build/) and lives in `docs/`. Content is generated automatically from the Go source and project markdown files — you generally don't edit `docs/src/content/docs/` by hand.
 
-However you can easily customize the look of your docs by editing the styles located in `docs/src/styles/custom.css`.j
+However you can easily customize the look of your docs by editing the styles located in `docs/src/styles/custom.css`.
+
+### Go Docs
+
+Go docs are generated via [gomarkdoc](https://github.com/princjef/gomarkdoc)
+
+Into **API Reference**
+
+These docs are intended to be be seen only for the development of the project.
+
+They contain the documentation for the development of the project; they are not needed by users of the cli tool you are building.
+
+### readme, install, config, and contributing
+
+These pages are pulled whole sale from the markdown files in the project. 
+Frontmatter is added to play nice with Startlight.
+
+### Commands `cmd`
+
+These pages are generated from go doc comments from the `/cmd` folder which
+contains all commands a potential user of the cli tool would use. 
+
+As well as some bash scripting to pull out information on any flag params for a given command.
 
 ### How docs are generated
+
+#### just docs-dev
+
+Build the docs and watch for changes.
+
+#### just docs-build
+
+Build docs for production.
+
+#### just docs-generate
 
 Running `just docs-generate` (or implicitly via `just docs-dev` / `just docs-build`) runs `scripts/docs_generate.sh`, which:
 
@@ -292,3 +324,4 @@ See `INSTALL.md` for installation options.
 # Thank you!
 
 This project was made by deconstructing another cli project of mine [Prompter](http://devan.gg/prompter-cli/). Check it out if you like fiddling with coding agents and want a more vim centric way of managing your prompting!
+

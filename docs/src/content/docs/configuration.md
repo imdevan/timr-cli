@@ -96,3 +96,4 @@ bookmark config
 ```
 
 This will open the config file in your configured editor.
+

@@ -1,69 +1,49 @@
-# Documentation
+# Starlight Starter Kit: Basics
 
-This directory contains the Astro Starlight documentation site for go-cli-template.
-
-## Setup
-
-```bash
-# Install dependencies
-just docs-init
-
-# Generate API docs and start dev server
-just docs-dev
-```
-
-## Commands
-
-- `just docs-init` - Install npm dependencies
-- `just docs-generate` - Generate API docs from Go packages
-- `just docs-dev` - Start development server with hot reload
-- `just docs-build` - Build production site
-- `just docs-preview` - Preview production build
-- `just docs-clean` - Clean build artifacts
-
-## Structure
+[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
 
 ```
-docs/
+bun create astro@latest -- --template starlight
+```
+
+> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+
+## 🚀 Project Structure
+
+Inside of your Astro + Starlight project, you'll see the following folders and files:
+
+```
+.
+├── public/
 ├── src/
+│   ├── assets/
 │   ├── content/
 │   │   └── docs/
-│   │       ├── index.mdx          # Homepage
-│   │       ├── guides/            # Manual guides
-│   │       └── api/               # Auto-generated API docs
-│   ├── assets/                    # Images and static assets
-│   └── styles/                    # Custom CSS
-├── astro.config.mjs               # Astro configuration
-└── package.json                   # Dependencies
+│   └── content.config.ts
+├── astro.config.mjs
+├── package.json
+└── tsconfig.json
 ```
 
-## Writing Documentation
+Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
 
-### Manual Pages
+Images can be added to `src/assets/` and embedded in Markdown with a relative link.
 
-Create `.md` or `.mdx` files in `src/content/docs/guides/`:
+Static assets, like favicons, can be placed in the `public/` directory.
 
-```markdown
----
-title: Your Guide Title
-description: A brief description
----
+## 🧞 Commands
 
-Your content here...
-```
+All commands are run from the root of the project, from a terminal:
 
-### API Documentation
+| Command                   | Action                                           |
+| :------------------------ | :----------------------------------------------- |
+| `bun install`             | Installs dependencies                            |
+| `bun dev`             | Starts local dev server at `localhost:4321`      |
+| `bun build`           | Build your production site to `./dist/`          |
+| `bun preview`         | Preview your build locally, before deploying     |
+| `bun astro ...`       | Run CLI commands like `astro add`, `astro check` |
+| `bun astro -- --help` | Get help using the Astro CLI                     |
 
-API docs are auto-generated from Go package comments using gomarkdoc. To update:
+## 👀 Want to learn more?
 
-1. Add/update Go doc comments in your code
-2. Run `just docs-generate`
-
-## Deployment
-
-Documentation is automatically deployed to GitHub Pages on push to main via `.github/workflows/docs.yml`.
-
-To enable:
-1. Go to repository Settings → Pages
-2. Set Source to "GitHub Actions"
-3. Push to main branch
+Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
