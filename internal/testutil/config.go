@@ -3,7 +3,7 @@ package testutil
 import (
 	"testing"
 
-	"go-cli-template/internal/domain"
+	"github.com/go-cli-template/internal/domain"
 )
 
 // ConfigOverrides lets tests override specific config fields.

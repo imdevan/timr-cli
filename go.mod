@@ -1,4 +1,4 @@
-module go-cli-template
+module github.com/go-cli-template
 
 go 1.25.6
 
@@ -39,3 +39,4 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 )
+
