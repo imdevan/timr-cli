@@ -23,14 +23,8 @@ const sidebar = [
   { label: 'Commands', items: [
     { label: 'go-cli-template', link: '/commands/go-cli-template' },
     { label: 'completion', link: '/commands/completion' },
-    {
-      label: 'config',
-      items: [
-        { label: 'config', link: '/commands/config' },
-        { label: 'config init', link: '/commands/config-init' },
-      ],
-    },
-
+    { label: 'config', link: '/commands/config' },
+    { label: 'init', link: '/commands/init' },
   ] },
   { label: 'Configuration', link: '/configuration' },
 ];

@@ -3,6 +3,7 @@ title: go-cli-template
 description: A generic CLI tool template built with Go, Cobra, and Bubble Tea. This template provides a foundation for building interactive command-line applications with a clean architecture and modern UI components.
 ---
 
+# go-cli-template
 
 <img width="480" height="270" alt="screenshot-2026-02-23_16-30-13" src="https://github.com/user-attachments/assets/65386b56-f06f-47be-9063-5c947b30dc51" />
 

@@ -1,5 +1,4 @@
 ---
-title: go-cli-template
 description: short
 ---
 
@@ -8,7 +7,7 @@ A generic CLI tool template built with Go, Cobra, and Bubble Tea. This template 
 ## Usage
 
 ```bash
-go-cli-template
+name
 ```
 
 ## Flags
@@ -35,7 +34,7 @@ Define a config.toml file to use instead of the global one.
 
 - [`completion`](/commands/completion) - Generate shell completion scripts
 - [`config`](/commands/config) - View or edit configuration
-- [`config-init`](/commands/config-init) - Generate a default config file
+- [`init`](/commands/init) - Generate a default config file
 
 ## Source
 
