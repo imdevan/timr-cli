@@ -3,14 +3,14 @@
 set shell := ["zsh", "-cu"]
 
 PACKAGE := "go-cli-template"
-cli_pack := "./bin/" + PACKAGE
+PACKAGE_BIN := "./bin/" + PACKAGE
 PACKAGE_CMD := "./cmd/" + PACKAGE
 
 cli_docs := "bin/go-cli-template"
 cli_pack := "bin/go-cli-package"
 
 _install-docs:
-	@if [ ! -f ./bin/go-cli-template ]; then \
+	@if [ ! -f ./bin/go-cli-docs ]; then \
 		echo "📥 Installing go-cli-docs..."; \
 		GOBIN="{{justfile_directory()}}/bin" "$(go env GOROOT)/bin/go" install github.com/imdevan/go-cli-docs/cmd/go-cli-docs@latest; \
 	fi
@@ -27,22 +27,22 @@ _install-pack:
 # ================================================================================
 
 build:
-	go build -o {{cli_pack}} {{PACKAGE_CMD}}
-	@size=$(stat -c %s {{cli_pack}} 2>/dev/null || stat -f %z {{cli_pack}} 2>/dev/null); \
+	go build -o {{PACKAGE_BIN}} {{PACKAGE_CMD}}
+	@size=$(stat -c %s {{PACKAGE_BIN}} 2>/dev/null || stat -f %z {{cli_pack}} 2>/dev/null); \
 	echo "Build size: $(awk "BEGIN {printf \"%.2f MB\", $size/1048576}")"
 
 build-run:
-	go build -o {{cli_pack}} {{PACKAGE_CMD}} && {{cli_pack}}
+	go build -o {{PACKAGE_BIN}} {{PACKAGE_CMD}} && {{PACKAGE_BIN}}
 
 watch:
-	@rg --files | entr -r sh -c 'sleep 0.5; go build -o {{cli_pack}} {{PACKAGE_CMD}}'
+	@rg --files | entr -r sh -c 'sleep 0.5; go build -o {{PACKAGE_BIN}} {{PACKAGE_CMD}}'
 
 dev-build:
-	go build -gcflags "all=-N -l" -o {{cli_pack}} {{PACKAGE_CMD}}
+	go build -gcflags "all=-N -l" -o {{PACKAGE_BIN}} {{PACKAGE_CMD}}
 
 # Install local build globally
 install:
-	install -m 0755 {{cli_pack}} /usr/local/bin/{{PACKAGE}}
+	install -m 0755 {{PACKAGE_BIN}} /usr/local/bin/{{PACKAGE}}
 
 # Uninstall local build globally
 uninstall:
