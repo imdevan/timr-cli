@@ -1,9 +1,8 @@
 ---
-title: Install
+title: Installation
 description: Installation instructions for go-cli-template
 ---
 
-# Installation
 
 This template is currently setup to build and deploy to homebrew and AUR. 
 

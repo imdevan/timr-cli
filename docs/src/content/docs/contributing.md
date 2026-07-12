@@ -3,7 +3,6 @@ title: Contributing
 description: Contributing to go-cli-template
 ---
 
-# Contributing
 
 ## Setup
 

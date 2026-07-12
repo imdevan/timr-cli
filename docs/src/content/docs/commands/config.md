@@ -1,4 +1,5 @@
 ---
+title: config
 description: View or edit configuration
 ---
 

@@ -3,7 +3,6 @@ title: Configuration
 description: Configuration options for go-cli-template
 ---
 
-# Configuration
 
 Configuration file location: `$XDG_CONFIG_HOME/go-cli-template/config.toml`
 

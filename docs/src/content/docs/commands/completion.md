@@ -1,4 +1,5 @@
 ---
+title: completion
 description: Generate shell completion scripts
 ---
 
