@@ -3,6 +3,7 @@
 
 name = "timr"
 package_name = "timr"
+aur_package_name = "timr-cli"
 module = "github.com/timr"
 description = "A simple cli timer"
 short = "A timer"

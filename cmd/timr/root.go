@@ -121,6 +121,7 @@ func newRootCmd() *cobra.Command {
 						alarmSound:         cfg.AlarmSound,
 						tickInterval:       100 * time.Millisecond,
 						updateTmux:         cfg.UpdateTmuxWindow,
+						tmuxProgressBar:    cfg.TmuxProgressBar,
 						originalTmuxWindow: originalTmux,
 						lastTmuxSeconds:    -1,
 					}
@@ -143,7 +144,7 @@ func newRootCmd() *cobra.Command {
 							remSec := int(remaining.Round(time.Second).Seconds())
 							if remSec != lastTmuxSec {
 								lastTmuxSec = remSec
-								setTmuxWindowName(timeremaining.Format(remaining, false))
+								setTmuxWindowName(timeremaining.Format(remaining, d, false, cfg.TmuxProgressBar))
 							}
 						}
 

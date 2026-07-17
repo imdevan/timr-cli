@@ -74,6 +74,8 @@ func renderConfigTemplate(cfg domain.Config) string {
 	builder.WriteString(fmt.Sprintf("# alarm_sound = %q\n", cfg.AlarmSound))
 	builder.WriteString("\n# CLI behavior\n")
 	builder.WriteString(fmt.Sprintf("# interactive_default = %t\n", cfg.InteractiveDefault))
+	builder.WriteString(fmt.Sprintf("# update_tmux_window = %t\n", cfg.UpdateTmuxWindow))
+	builder.WriteString(fmt.Sprintf("# tmux_progress_bar = %t\n", cfg.TmuxProgressBar))
 	builder.WriteString("\n# UI\n")
 	builder.WriteString("# list_spacing options: compact (title only), tight (title + description, no margin), space (default, with spacing)\n")
 	builder.WriteString(fmt.Sprintf("# list_spacing = %q\n", cfg.ListSpacing))

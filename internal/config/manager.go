@@ -97,6 +97,7 @@ type partialConfig struct {
 	BarFg                *string `toml:"bar_fg"`
 	HelpText             *string `toml:"help_text"`
 	UpdateTmuxWindow     *bool   `toml:"update_tmux_window"`
+	TmuxProgressBar     *bool   `toml:"tmux_progress_bar"`
 }
 
 func readConfig(path string) (*partialConfig, error) {
@@ -150,6 +151,9 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.UpdateTmuxWindow != nil {
 		config.UpdateTmuxWindow = *partial.UpdateTmuxWindow
+	}
+	if partial.TmuxProgressBar != nil {
+		config.TmuxProgressBar = *partial.TmuxProgressBar
 	}
 }
 

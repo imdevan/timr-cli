@@ -29,6 +29,7 @@ type timerModel struct {
 	confirmMode        bool
 	confirmModel       *ui.ConfirmationModel
 	updateTmux         bool
+	tmuxProgressBar    bool
 	originalTmuxWindow string
 	lastTmuxSeconds    int
 }
@@ -66,7 +67,7 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						} else {
 							m.lastTickTime = time.Now()
 							if m.updateTmux && os.Getenv("TMUX") != "" {
-								setTmuxWindowName(timeremaining.Format(m.remaining, m.paused))
+								setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar))
 							}
 							return m, tick(m.tickInterval)
 						}
@@ -103,12 +104,12 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.paused = false
 					m.lastTickTime = time.Now()
 					if m.updateTmux && os.Getenv("TMUX") != "" {
-						setTmuxWindowName(timeremaining.Format(m.remaining, m.paused))
+						setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar))
 					}
 				} else {
 					m.paused = true
 					if m.updateTmux && os.Getenv("TMUX") != "" {
-						setTmuxWindowName(timeremaining.Format(m.remaining, m.paused))
+						setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar))
 					}
 				}
 			}
@@ -144,7 +145,7 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					remSec := int(m.remaining.Round(time.Second).Seconds())
 					if remSec != m.lastTmuxSeconds {
 						m.lastTmuxSeconds = remSec
-						setTmuxWindowName(timeremaining.Format(m.remaining, m.paused))
+						setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar))
 					}
 				}
 			}
@@ -166,7 +167,12 @@ func (m timerModel) View() string {
 		if m.cancelled {
 			return lipgloss.NewStyle().Foreground(m.theme.HelpText).Render("✗ Timer cancelled.\n")
 		}
-		return lipgloss.NewStyle().Foreground(m.theme.TimeRemaining).Bold(true).Render("⏰ Time's up!\n")
+		msg := lipgloss.NewStyle().Foreground(m.theme.TimeRemaining).Bold(true).Render("⏰ Time's up!")
+		borderStyle := lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(m.theme.Border).
+			Padding(0, 1)
+		return borderStyle.Render(msg) + "\n"
 	}
 
 	// 1. Build the first line: remaining time on left, total duration on right

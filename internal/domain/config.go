@@ -19,6 +19,7 @@ type Config struct {
 	BarFg                string `toml:"bar_fg"`
 	HelpText             string `toml:"help_text"`
 	UpdateTmuxWindow     bool   `toml:"update_tmux_window"`
+	TmuxProgressBar     bool   `toml:"tmux_progress_bar"`
 }
 
 // DefaultConfig returns the default configuration values.
@@ -36,6 +37,7 @@ func DefaultConfig() Config {
 		BarFg:                "02",
 		HelpText:             "08",
 		UpdateTmuxWindow:     false,
+		TmuxProgressBar:     true,
 	}
 }
 
