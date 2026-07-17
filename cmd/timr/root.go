@@ -17,6 +17,7 @@ import (
 	"github.com/timr/internal/config"
 	"github.com/timr/internal/domain"
 	pkg "github.com/timr/internal/package"
+	timeremaining "github.com/timr/internal/time_remaining"
 	"github.com/timr/internal/ui"
 	"github.com/timr/internal/utils"
 )
@@ -142,7 +143,7 @@ func newRootCmd() *cobra.Command {
 							remSec := int(remaining.Round(time.Second).Seconds())
 							if remSec != lastTmuxSec {
 								lastTmuxSec = remSec
-								setTmuxWindowName(fmt.Sprintf("⏰ %s", formatDuration(remaining)))
+								setTmuxWindowName(timeremaining.Format(remaining, false))
 							}
 						}
 

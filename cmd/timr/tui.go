@@ -10,6 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/timr/internal/adapters/tmux"
+	timeremaining "github.com/timr/internal/time_remaining"
 	"github.com/timr/internal/ui"
 )
 
@@ -65,7 +66,7 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						} else {
 							m.lastTickTime = time.Now()
 							if m.updateTmux && os.Getenv("TMUX") != "" {
-								setTmuxWindowName(fmt.Sprintf("⏰ %s", formatDuration(m.remaining)))
+								setTmuxWindowName(timeremaining.Format(m.remaining, m.paused))
 							}
 							return m, tick(m.tickInterval)
 						}
@@ -102,12 +103,12 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.paused = false
 					m.lastTickTime = time.Now()
 					if m.updateTmux && os.Getenv("TMUX") != "" {
-						setTmuxWindowName(fmt.Sprintf("⏰ %s", formatDuration(m.remaining)))
+						setTmuxWindowName(timeremaining.Format(m.remaining, m.paused))
 					}
 				} else {
 					m.paused = true
 					if m.updateTmux && os.Getenv("TMUX") != "" {
-						setTmuxWindowName(fmt.Sprintf("⏰ %s [PAUSED]", formatDuration(m.remaining)))
+						setTmuxWindowName(timeremaining.Format(m.remaining, m.paused))
 					}
 				}
 			}
@@ -143,7 +144,7 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					remSec := int(m.remaining.Round(time.Second).Seconds())
 					if remSec != m.lastTmuxSeconds {
 						m.lastTmuxSeconds = remSec
-						setTmuxWindowName(fmt.Sprintf("⏰ %s", formatDuration(m.remaining)))
+						setTmuxWindowName(timeremaining.Format(m.remaining, m.paused))
 					}
 				}
 			}
