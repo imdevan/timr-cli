@@ -12,6 +12,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 
 	"github.com/timr/internal/config"
 	"github.com/timr/internal/domain"
@@ -137,10 +138,19 @@ func newRootCmd() *cobra.Command {
 					}
 				}
 
-				fmt.Println("\n⏰ Time's up! Playing alarm... [Press Enter to stop]")
+				fmt.Println("\n⏰ Time's up! Playing alarm... [Press any key to stop]")
 
 				stopChan := make(chan struct{})
 				go func() {
+					fd := int(os.Stdin.Fd())
+					if term.IsTerminal(fd) {
+						state, err := term.MakeRaw(fd)
+						if err == nil {
+							defer func() {
+								_ = term.Restore(fd, state)
+							}()
+						}
+					}
 					var b [1]byte
 					_, _ = os.Stdin.Read(b[:])
 					select {
