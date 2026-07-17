@@ -16,6 +16,7 @@ The following options can be set in your configuration file:
 | `interactive_default` | bool | `true` | Start in interactive mode by default when running a timer |
 | `update_tmux_window` | bool | `false` | When true, rename the active tmux window to the remaining time |
 | `tmux_progress_bar` | bool | `true` | When update_tmux_window is true, prefix window title with Nerd Font weather moon icons showing progress |
+| `rainbow` | bool or []string | `true` | Show an oscillating rainbow progress bar on completion (`true`), disable it (`false`), or pass a custom array of color hexes/names |
 
 ### Display Settings
 
@@ -50,6 +51,11 @@ default_units = "minutes"
 
 update_tmux_window = false
 tmux_progress_bar = true
+
+# Completed timer animation options:
+# rainbow = true                                         # enable rainbow bar (default)
+# rainbow = false                                        # disable rainbow bar (blank line)
+# rainbow = ["#f5bde6", "#c6a0f6", "#ed8796"]            # custom colors for rainbow bar
 
 # CLI behavior
 interactive_default = true

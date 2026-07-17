@@ -28,6 +28,10 @@ type Theme struct {
 	Tags                 lipgloss.Color
 	Flags                lipgloss.Color
 	Muted                lipgloss.Color
+
+	// Feature flags
+	RainbowBar    bool
+	RainbowColors []lipgloss.Color
 }
 
 // ThemeFromConfig builds a theme with safe fallbacks.
@@ -39,13 +43,27 @@ func ThemeFromConfig(cfg domain.Config) Theme {
 	helpText := resolveColor(cfg.HelpText, "08")
 	border := resolveColor(cfg.Border, "08")
 
+	rawColors := cfg.Rainbow.Colors
+	if len(rawColors) == 0 {
+		rawColors = cfg.RainbowBar.Colors
+	}
+	var customRainbow []lipgloss.Color
+	for _, c := range rawColors {
+		trimmed := strings.TrimSpace(c)
+		if trimmed != "" {
+			customRainbow = append(customRainbow, lipgloss.Color(trimmed))
+		}
+	}
+
 	return Theme{
-		TimeRemaining:        timeRemaining,
-		TimeStart:            timeStart,
-		BarBg:                barBg,
-		BarFg:                barFg,
-		HelpText:             helpText,
-		Border:               border,
+		TimeRemaining: timeRemaining,
+		TimeStart:     timeStart,
+		BarBg:         barBg,
+		BarFg:         barFg,
+		HelpText:      helpText,
+		Border:        border,
+		RainbowBar:    cfg.Rainbow.Enabled && cfg.RainbowBar.Enabled,
+		RainbowColors: customRainbow,
 
 		// Maps for backward compatibility
 		Headings:             timeRemaining,

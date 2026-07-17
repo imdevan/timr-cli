@@ -11,9 +11,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
-	"golang.org/x/term"
 
 	"github.com/timr/internal/alarm"
 	"github.com/timr/internal/config"
@@ -126,6 +124,7 @@ func newRootCmd() *cobra.Command {
 						tmuxProgressBar:    cfg.TmuxProgressBar,
 						originalTmuxWindow: originalTmux,
 						lastTmuxSeconds:    -1,
+						rainbowBar:         cfg.Rainbow.Enabled && cfg.RainbowBar.Enabled,
 					}
 					p := tea.NewProgram(m)
 					finalModel, pErr = p.Run()
@@ -167,34 +166,8 @@ func newRootCmd() *cobra.Command {
 					}
 				}
 
-				timesUpLine := lipgloss.NewStyle().Foreground(theme.TimeRemaining).Bold(true).Render("⏰ Time's up!\n")
-				helpLine := lipgloss.NewStyle().Foreground(theme.HelpText).Render("Playing alarm... [Press any key to stop]")
-				borderStyle := lipgloss.NewStyle().
-					Border(lipgloss.RoundedBorder()).
-					BorderForeground(theme.Border).
-					Padding(1, 2)
-				fmt.Println(borderStyle.Render(timesUpLine + "\n" + helpLine))
-
+				// Start alarm in background; close stopChan when it finishes.
 				stopChan := make(chan struct{})
-				go func() {
-					fd := int(os.Stdin.Fd())
-					if term.IsTerminal(fd) {
-						state, err := term.MakeRaw(fd)
-						if err == nil {
-							defer func() {
-								_ = term.Restore(fd, state)
-							}()
-						}
-					}
-					var b [1]byte
-					_, _ = os.Stdin.Read(b[:])
-					select {
-					case <-stopChan:
-					default:
-						close(stopChan)
-					}
-				}()
-
 				playCmd := startPlayAlarmCmd(alarm.Resolve(cfg))
 				if playCmd != nil {
 					go func() {
@@ -205,14 +178,24 @@ func newRootCmd() *cobra.Command {
 							close(stopChan)
 						}
 					}()
+				} else {
+					// No alarm file — close immediately so doneModel exits on keypress only.
+					// Leave stopChan open; doneModel will exit when a key is pressed.
+					_ = stopChan // keep reference alive
 				}
 
-				<-stopChan
+				// Run the animated done screen.
+				done := doneModel{theme: theme, stopCh: stopChan}
+				if _, err := tea.NewProgram(done).Run(); err != nil {
+					_ = err // best-effort
+				}
+
+				// Stop any still-running alarm.
 				if playCmd != nil && playCmd.Process != nil {
 					_ = playCmd.Process.Kill()
 				}
 
-				// Restore Tmux window name on clean exit
+				// Restore Tmux window name on clean exit.
 				if cfg.UpdateTmuxWindow && originalTmux != "" {
 					setTmuxWindowName(originalTmux)
 				}

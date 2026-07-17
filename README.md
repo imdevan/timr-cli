@@ -273,6 +273,7 @@ Configuration is stored at `$XDG_CONFIG_HOME/timr/config.toml` (typically `~/.co
 | `interactive_default` | bool | `true` | Start in interactive TUI mode by default |
 | `update_tmux_window` | bool | `false` | When true, rename the active tmux window to the remaining time |
 | `tmux_progress_bar` | bool | `true` | When update_tmux_window is true, prefix window title with Nerd Font weather moon icons showing progress |
+| `rainbow` | bool or []string | `true` | Show an oscillating rainbow progress bar on completion (`true`), disable it (`false`), or pass custom array of color hexes/names |
 | `list_spacing` | string | `space` | List density: `compact` (title only), `tight` (title + description), `space` (with margins) |
 | `time_remaining` | string | `14` | Remaining time color |
 | `time_start` | string | `07` | Total/start duration color |

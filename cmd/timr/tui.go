@@ -32,6 +32,7 @@ type timerModel struct {
 	tmuxProgressBar    bool
 	originalTmuxWindow string
 	lastTmuxSeconds    int
+	rainbowBar         bool
 }
 
 func (m timerModel) Init() tea.Cmd {
@@ -243,6 +244,99 @@ func formatDuration(d time.Duration) string {
 		return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
 	}
 	return fmt.Sprintf("%02d:%02d", m, s)
+}
+
+// rainbowColors is the sequence of hues cycled across the bar.
+var rainbowColors = []lipgloss.Color{
+	"#f5bde6", // Pink
+	"#c6a0f6", // Mauve
+	"#ed8796", // Red
+	"#ee99a0", // Maroon
+	"#f5a97f", // Peach
+	"#eed49f", // Yellow
+	"#a6da95", // Green
+	"#8bd5ca", // Teal
+	"#91d7e3", // Sky
+	"#7dc4e4", // Sapphire
+	"#8aadf4", // Blue
+	"#b7bdf8", // Lavender
+}
+
+// doneModel is a short-lived Bubble Tea program shown after the timer
+// completes. It animates an oscillating rainbow bar inside the themed border
+// while the alarm is playing, and exits on any keypress.
+type doneModel struct {
+	theme  ui.Theme
+	phase  int
+	stopCh <-chan struct{}
+}
+
+type doneTickMsg struct{}
+
+func (d doneModel) Init() tea.Cmd {
+	return tea.Tick(80*time.Millisecond, func(t time.Time) tea.Msg {
+		return doneTickMsg{}
+	})
+}
+
+func (d doneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg.(type) {
+	case tea.KeyMsg:
+		return d, tea.Quit
+	case doneTickMsg:
+		// Check if the alarm finished (stopCh closed).
+		select {
+		case <-d.stopCh:
+			return d, tea.Quit
+		default:
+		}
+		d.phase++
+		return d, tea.Tick(80*time.Millisecond, func(t time.Time) tea.Msg {
+			return doneTickMsg{}
+		})
+	}
+	return d, nil
+}
+
+func (d doneModel) View() string {
+	const width = 40
+	timesUpLine := lipgloss.NewStyle().
+		Foreground(d.theme.TimeRemaining).
+		Bold(true).
+		Render("⏰ Time's up!")
+
+	var barStr string
+	if d.theme.RainbowBar {
+		colors := d.theme.RainbowColors
+		if len(colors) == 0 {
+			colors = rainbowColors
+		}
+		n := len(colors)
+		bar := make([]string, width)
+		for i := range bar {
+			// Oscillate: shift the hue offset sinusoidally using phase.
+			colorIdx := (i + d.phase) % n
+			bar[i] = lipgloss.NewStyle().
+				Foreground(colors[colorIdx]).
+				Render("█")
+		}
+		barStr = strings.Join(bar, "")
+	} else {
+		barStr = strings.Repeat(" ", width)
+	}
+
+	helpLine := lipgloss.NewStyle().
+		Foreground(d.theme.HelpText).
+		Render("Playing alarm... [Press any key to stop]")
+
+	inner := timesUpLine + "\n" + barStr + "\n" + helpLine
+
+	borderStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(d.theme.Border).
+		Padding(0, 1)
+
+	return borderStyle.Render(inner) + "\n"
 }
 
 var activePlayCmd *exec.Cmd

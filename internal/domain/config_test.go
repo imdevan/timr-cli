@@ -2,6 +2,8 @@ package domain
 
 import (
 	"testing"
+
+	"github.com/pelletier/go-toml/v2"
 )
 
 func TestDefaultConfig(t *testing.T) {
@@ -98,6 +100,72 @@ func TestConfig_StructTags(t *testing.T) {
 		
 		if cfg.Editor != "test" {
 			t.Error("Config struct should be properly defined")
+		}
+	})
+}
+
+func TestRainbowOption_UnmarshalTOML(t *testing.T) {
+	type wrapper struct {
+		Rainbow RainbowOption `toml:"rainbow"`
+	}
+
+	t.Run("unmarshal boolean true", func(t *testing.T) {
+		var w wrapper
+		err := toml.Unmarshal([]byte("rainbow = true"), &w)
+		if err != nil {
+			t.Fatalf("unexpected error unmarshaling true: %v", err)
+		}
+		if !w.Rainbow.Enabled {
+			t.Error("expected Enabled to be true")
+		}
+		if w.Rainbow.Colors != nil {
+			t.Errorf("expected Colors to be nil, got %v", w.Rainbow.Colors)
+		}
+	})
+
+	t.Run("unmarshal boolean false", func(t *testing.T) {
+		var w wrapper
+		err := toml.Unmarshal([]byte("rainbow = false"), &w)
+		if err != nil {
+			t.Fatalf("unexpected error unmarshaling false: %v", err)
+		}
+		if w.Rainbow.Enabled {
+			t.Error("expected Enabled to be false")
+		}
+		if w.Rainbow.Colors != nil {
+			t.Errorf("expected Colors to be nil, got %v", w.Rainbow.Colors)
+		}
+	})
+
+	t.Run("unmarshal list of colors", func(t *testing.T) {
+		var w wrapper
+		err := toml.Unmarshal([]byte(`rainbow = ["#ff0000", "#00ff00", "#0000ff"]`), &w)
+		if err != nil {
+			t.Fatalf("unexpected error unmarshaling list of colors: %v", err)
+		}
+		if !w.Rainbow.Enabled {
+			t.Error("expected Enabled to be true")
+		}
+		expectedColors := []string{"#ff0000", "#00ff00", "#0000ff"}
+		if len(w.Rainbow.Colors) != len(expectedColors) {
+			t.Fatalf("expected %d colors, got %d", len(expectedColors), len(w.Rainbow.Colors))
+		}
+		for i, c := range expectedColors {
+			if w.Rainbow.Colors[i] != c {
+				t.Errorf("expected color at index %d to be %q, got %q", i, c, w.Rainbow.Colors[i])
+			}
+		}
+	})
+
+	t.Run("unmarshal invalid values should error", func(t *testing.T) {
+		var w wrapper
+		err := toml.Unmarshal([]byte(`rainbow = 12345`), &w)
+		if err == nil {
+			t.Error("expected unmarshaling number to fail")
+		}
+		err = toml.Unmarshal([]byte(`rainbow = { colors = [] }`), &w)
+		if err == nil {
+			t.Error("expected unmarshaling table to fail")
 		}
 	})
 }

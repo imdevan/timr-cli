@@ -96,8 +96,10 @@ type partialConfig struct {
 	BarBg                *string `toml:"bar_bg"`
 	BarFg                *string `toml:"bar_fg"`
 	HelpText             *string `toml:"help_text"`
-	UpdateTmuxWindow     *bool   `toml:"update_tmux_window"`
-	TmuxProgressBar     *bool   `toml:"tmux_progress_bar"`
+	UpdateTmuxWindow     *bool                 `toml:"update_tmux_window"`
+	TmuxProgressBar      *bool                 `toml:"tmux_progress_bar"`
+	Rainbow              *domain.RainbowOption `toml:"rainbow"`
+	RainbowBar           *domain.RainbowOption `toml:"rainbow_bar"`
 }
 
 func readConfig(path string) (*partialConfig, error) {
@@ -154,6 +156,14 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.TmuxProgressBar != nil {
 		config.TmuxProgressBar = *partial.TmuxProgressBar
+	}
+	if partial.Rainbow != nil {
+		config.Rainbow = *partial.Rainbow
+		config.RainbowBar = *partial.Rainbow
+	}
+	if partial.RainbowBar != nil {
+		config.RainbowBar = *partial.RainbowBar
+		config.Rainbow = *partial.RainbowBar
 	}
 }
 
