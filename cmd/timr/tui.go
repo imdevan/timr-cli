@@ -24,6 +24,8 @@ type timerModel struct {
 	theme         ui.Theme
 	alarmSound    string
 	tickInterval  time.Duration
+	confirmMode   bool
+	confirmModel  *ui.ConfirmationModel
 }
 
 func (m timerModel) Init() tea.Cmd {
@@ -39,10 +41,45 @@ func tick(d time.Duration) tea.Cmd {
 }
 
 func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.confirmMode && m.confirmModel != nil {
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			updated, cmd := m.confirmModel.Update(msg)
+			if updatedConfirm, ok := updated.(ui.ConfirmationModel); ok {
+				m.confirmModel = &updatedConfirm
+				if cmd != nil {
+					if _, isQuit := cmd().(tea.QuitMsg); isQuit {
+						confirmed := m.confirmModel.ChoiceValue()
+						m.confirmMode = false
+						if confirmed {
+							m.quitting = true
+							m.cancelled = true
+							return m, tea.Quit
+						} else {
+							m.lastTickTime = time.Now()
+							return m, tick(m.tickInterval)
+						}
+					}
+				}
+			}
+			return m, cmd
+		}
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q", "esc", "ctrl+c":
+			if !m.isMonitor && m.remaining > 0 {
+				confirmModel := ui.NewConfirmationModel(
+					"Cancel Timer",
+					"Are you sure you want to cancel the timer?",
+					m.theme,
+				)
+				m.confirmModel = &confirmModel
+				m.confirmMode = true
+				return m, confirmModel.Init()
+			}
 			m.quitting = true
 			m.cancelled = true
 			return m, tea.Quit
@@ -90,6 +127,10 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m timerModel) View() string {
+	if m.confirmMode && m.confirmModel != nil {
+		return m.confirmModel.View()
+	}
+
 	if m.quitting {
 		if m.cancelled {
 			return lipgloss.NewStyle().Foreground(m.theme.Muted).Render("✗ Timer cancelled.\n")
