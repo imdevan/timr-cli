@@ -99,17 +99,29 @@ func newRootCmd() *cobra.Command {
 				if cmd.Flags().Changed("interactive") {
 					isInteractive = opts.interactive
 				}
+
+				// Retrieve tmux window name if needed
+				var originalTmux string
+				if cfg.UpdateTmuxWindow && os.Getenv("TMUX") != "" {
+					if name, err := getTmuxWindowName(); err == nil {
+						originalTmux = name
+					}
+				}
+
 				var finalModel tea.Model
 				var pErr error
 				if isInteractive {
 					m := timerModel{
-						duration:     d,
-						remaining:    d,
-						lastTickTime: time.Now(),
-						endTime:      endTime,
-						theme:        theme,
-						alarmSound:   cfg.AlarmSound,
-						tickInterval: 100 * time.Millisecond,
+						duration:           d,
+						remaining:          d,
+						lastTickTime:       time.Now(),
+						endTime:            endTime,
+						theme:              theme,
+						alarmSound:         cfg.AlarmSound,
+						tickInterval:       100 * time.Millisecond,
+						updateTmux:         cfg.UpdateTmuxWindow,
+						originalTmuxWindow: originalTmux,
+						lastTmuxSeconds:    -1,
 					}
 					p := tea.NewProgram(m)
 					finalModel, pErr = p.Run()
@@ -122,12 +134,25 @@ func newRootCmd() *cobra.Command {
 					defer ticker.Stop()
 
 					remaining := d
+					lastTmuxSec := -1
 					for remaining > 0 {
 						fmt.Printf("\rTimer: %s remaining... [Ctrl+C to cancel]", formatDuration(remaining))
+
+						if cfg.UpdateTmuxWindow && os.Getenv("TMUX") != "" {
+							remSec := int(remaining.Round(time.Second).Seconds())
+							if remSec != lastTmuxSec {
+								lastTmuxSec = remSec
+								setTmuxWindowName(fmt.Sprintf("⏰ %s", formatDuration(remaining)))
+							}
+						}
+
 						select {
 						case <-ticker.C:
 							remaining = time.Until(endTime)
 						}
+					}
+					if cfg.UpdateTmuxWindow && os.Getenv("TMUX") != "" {
+						setTmuxWindowName("⏰ done!")
 					}
 				}
 
@@ -175,6 +200,11 @@ func newRootCmd() *cobra.Command {
 				<-stopChan
 				if playCmd != nil && playCmd.Process != nil {
 					_ = playCmd.Process.Kill()
+				}
+
+				// Restore Tmux window name on clean exit
+				if cfg.UpdateTmuxWindow && originalTmux != "" {
+					setTmuxWindowName(originalTmux)
 				}
 				return nil
 			}

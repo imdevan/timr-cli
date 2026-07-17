@@ -9,23 +9,27 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/timr/internal/adapters/tmux"
 	"github.com/timr/internal/ui"
 )
 
 type timerModel struct {
-	duration      time.Duration
-	remaining     time.Duration
-	lastTickTime  time.Time
-	endTime       time.Time
-	paused        bool
-	isMonitor     bool
-	quitting      bool
-	cancelled     bool
-	theme         ui.Theme
-	alarmSound    string
-	tickInterval  time.Duration
-	confirmMode   bool
-	confirmModel  *ui.ConfirmationModel
+	duration           time.Duration
+	remaining          time.Duration
+	lastTickTime       time.Time
+	endTime            time.Time
+	paused             bool
+	isMonitor          bool
+	quitting           bool
+	cancelled          bool
+	theme              ui.Theme
+	alarmSound         string
+	tickInterval       time.Duration
+	confirmMode        bool
+	confirmModel       *ui.ConfirmationModel
+	updateTmux         bool
+	originalTmuxWindow string
+	lastTmuxSeconds    int
 }
 
 func (m timerModel) Init() tea.Cmd {
@@ -54,9 +58,15 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						if confirmed {
 							m.quitting = true
 							m.cancelled = true
+							if m.updateTmux && m.originalTmuxWindow != "" {
+								setTmuxWindowName(m.originalTmuxWindow)
+							}
 							return m, tea.Quit
 						} else {
 							m.lastTickTime = time.Now()
+							if m.updateTmux && os.Getenv("TMUX") != "" {
+								setTmuxWindowName(fmt.Sprintf("⏰ %s", formatDuration(m.remaining)))
+							}
 							return m, tick(m.tickInterval)
 						}
 					}
@@ -82,14 +92,23 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.quitting = true
 			m.cancelled = true
+			if m.updateTmux && m.originalTmuxWindow != "" {
+				setTmuxWindowName(m.originalTmuxWindow)
+			}
 			return m, tea.Quit
 		case " ":
 			if !m.isMonitor {
 				if m.paused {
 					m.paused = false
 					m.lastTickTime = time.Now()
+					if m.updateTmux && os.Getenv("TMUX") != "" {
+						setTmuxWindowName(fmt.Sprintf("⏰ %s", formatDuration(m.remaining)))
+					}
 				} else {
 					m.paused = true
+					if m.updateTmux && os.Getenv("TMUX") != "" {
+						setTmuxWindowName(fmt.Sprintf("⏰ %s [PAUSED]", formatDuration(m.remaining)))
+					}
 				}
 			}
 		}
@@ -114,7 +133,18 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.remaining <= 0 {
 					m.remaining = 0
 					m.quitting = true
+					if m.updateTmux && m.originalTmuxWindow != "" {
+						setTmuxWindowName("⏰ done!")
+					}
 					return m, tea.Quit
+				}
+
+				if m.updateTmux && os.Getenv("TMUX") != "" {
+					remSec := int(m.remaining.Round(time.Second).Seconds())
+					if remSec != m.lastTmuxSeconds {
+						m.lastTmuxSeconds = remSec
+						setTmuxWindowName(fmt.Sprintf("⏰ %s", formatDuration(m.remaining)))
+					}
 				}
 			}
 			m.lastTickTime = now
@@ -275,4 +305,14 @@ func beepTerminal() {
 		_, _ = os.Stdout.Write([]byte("\a"))
 		time.Sleep(300 * time.Millisecond)
 	}
+}
+
+var tmuxAdapter = tmux.New()
+
+func getTmuxWindowName() (string, error) {
+	return tmuxAdapter.OriginalName(), nil
+}
+
+func setTmuxWindowName(name string) {
+	_ = tmuxAdapter.RenameWindow(name)
 }

@@ -18,6 +18,7 @@ type Config struct {
 	BarBg                string `toml:"bar_bg"`
 	BarFg                string `toml:"bar_fg"`
 	HelpText             string `toml:"help_text"`
+	UpdateTmuxWindow     bool   `toml:"update_tmux_window"`
 }
 
 // DefaultConfig returns the default configuration values.
@@ -34,6 +35,7 @@ func DefaultConfig() Config {
 		BarBg:                "08",
 		BarFg:                "02",
 		HelpText:             "08",
+		UpdateTmuxWindow:     false,
 	}
 }
 

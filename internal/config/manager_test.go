@@ -161,7 +161,7 @@ func TestManagerLoadWithOverride(t *testing.T) {
 		}
 
 		overridePath := filepath.Join(root, "custom-config.toml")
-		data := []byte("editor = \"emacs\"\nprimary = \"03\"\n")
+		data := []byte("editor = \"emacs\"\ntime_remaining = \"03\"\n")
 		if err := os.WriteFile(overridePath, data, 0o644); err != nil {
 			t.Fatalf("write override config: %v", err)
 		}
@@ -175,8 +175,8 @@ func TestManagerLoadWithOverride(t *testing.T) {
 		if cfg.Editor != "emacs" {
 			t.Errorf("expected editor from override, got %q", cfg.Editor)
 		}
-		if cfg.Primary != "03" {
-			t.Errorf("expected primary from override, got %q", cfg.Primary)
+		if cfg.TimeRemaining != "03" {
+			t.Errorf("expected time_remaining from override, got %q", cfg.TimeRemaining)
 		}
 	})
 
@@ -213,7 +213,7 @@ func TestManagerLocalOverridesGlobal(t *testing.T) {
 	if err := os.MkdirAll(filepath.Dir(globalPath), 0o755); err != nil {
 		t.Fatalf("mkdir global config dir: %v", err)
 	}
-	globalData := []byte("editor = \"vim\"\nprimary = \"01\"\n")
+	globalData := []byte("editor = \"vim\"\ntime_remaining = \"01\"\n")
 	if err := os.WriteFile(globalPath, globalData, 0o644); err != nil {
 		t.Fatalf("write global config: %v", err)
 	}
@@ -237,8 +237,8 @@ func TestManagerLocalOverridesGlobal(t *testing.T) {
 	if cfg.Editor != "emacs" {
 		t.Errorf("expected editor from local config, got %q", cfg.Editor)
 	}
-	if cfg.Primary != "01" {
-		t.Errorf("expected primary from global config, got %q", cfg.Primary)
+	if cfg.TimeRemaining != "01" {
+		t.Errorf("expected time_remaining from global config, got %q", cfg.TimeRemaining)
 	}
 }
 
@@ -272,11 +272,11 @@ func TestManagerPartialConfig(t *testing.T) {
 			t.Errorf("expected editor from config, got %q", cfg.Editor)
 		}
 		// Check that defaults are still present
-		if cfg.Primary != "02" {
-			t.Errorf("expected default primary, got %q", cfg.Primary)
+		if cfg.TimeRemaining != "14" {
+			t.Errorf("expected default time_remaining, got %q", cfg.TimeRemaining)
 		}
-		if cfg.Headings != "15" {
-			t.Errorf("expected default headings, got %q", cfg.Headings)
+		if cfg.TimeStart != "07" {
+			t.Errorf("expected default time_start, got %q", cfg.TimeStart)
 		}
 		if !cfg.InteractiveDefault {
 			t.Error("expected default interactive_default to be true")
@@ -298,16 +298,11 @@ func TestManagerColorOverrides(t *testing.T) {
 	}
 
 	data := []byte(`
-headings = "10"
-primary = "04"
-secondary = "05"
-text = "09"
-text_highlight = "11"
-description_highlight = "12"
-tags = "14"
-flags = "15"
-muted = "07"
-accent = "16"
+time_remaining = "10"
+time_start = "04"
+bar_bg = "05"
+bar_fg = "09"
+help_text = "11"
 border = "06"
 `)
 	if err := os.WriteFile(configPath, data, 0o644); err != nil {
@@ -325,16 +320,11 @@ border = "06"
 		got      string
 		expected string
 	}{
-		{"Headings", cfg.Headings, "10"},
-		{"Primary", cfg.Primary, "04"},
-		{"Secondary", cfg.Secondary, "05"},
-		{"Text", cfg.Text, "09"},
-		{"TextHighlight", cfg.TextHighlight, "11"},
-		{"DescriptionHighlight", cfg.DescriptionHighlight, "12"},
-		{"Tags", cfg.Tags, "14"},
-		{"Flags", cfg.Flags, "15"},
-		{"Muted", cfg.Muted, "07"},
-		{"Accent", cfg.Accent, "16"},
+		{"TimeRemaining", cfg.TimeRemaining, "10"},
+		{"TimeStart", cfg.TimeStart, "04"},
+		{"BarBg", cfg.BarBg, "05"},
+		{"BarFg", cfg.BarFg, "09"},
+		{"HelpText", cfg.HelpText, "11"},
 		{"Border", cfg.Border, "06"},
 	}
 

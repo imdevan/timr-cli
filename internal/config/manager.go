@@ -96,6 +96,7 @@ type partialConfig struct {
 	BarBg                *string `toml:"bar_bg"`
 	BarFg                *string `toml:"bar_fg"`
 	HelpText             *string `toml:"help_text"`
+	UpdateTmuxWindow     *bool   `toml:"update_tmux_window"`
 }
 
 func readConfig(path string) (*partialConfig, error) {
@@ -146,6 +147,9 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.HelpText != nil {
 		config.HelpText = *partial.HelpText
+	}
+	if partial.UpdateTmuxWindow != nil {
+		config.UpdateTmuxWindow = *partial.UpdateTmuxWindow
 	}
 }
 
