@@ -98,32 +98,25 @@ func (m timerModel) View() string {
 		return lipgloss.NewStyle().Foreground(m.theme.Primary).Bold(true).Render("⏰ Time's up!\n")
 	}
 
-	var sb strings.Builder
-
-	// Title
-	var title string
-	if m.isMonitor {
-		title = fmt.Sprintf("Monitoring Background Timer (%s)", formatDuration(m.duration))
-	} else {
-		title = fmt.Sprintf("Timer: %s", formatDuration(m.duration))
-	}
-	sb.WriteString(lipgloss.NewStyle().Foreground(m.theme.Headings).Bold(true).Render(title))
-	sb.WriteString("\n")
-
-	// Countdown
-	remainingStr := formatDuration(m.remaining)
-	countdownStyle := lipgloss.NewStyle().
-		Foreground(m.theme.TextHighlight).
-		Bold(true)
-	
+	// 1. Build the first line: remaining time on left, total duration on right
+	remStr := formatDuration(m.remaining)
 	if m.paused {
-		sb.WriteString(countdownStyle.Render(remainingStr + " [PAUSED]"))
-	} else {
-		sb.WriteString(countdownStyle.Render(remainingStr))
+		remStr = remStr + " [PAUSED]"
 	}
-	sb.WriteString("\n")
+	totStr := formatDuration(m.duration)
 
-	// Progress Bar
+	visibleLen := len(remStr) + len(totStr)
+	spaceCount := 40 - visibleLen
+	if spaceCount < 1 {
+		spaceCount = 1
+	}
+	spaces := strings.Repeat(" ", spaceCount)
+
+	styledRem := lipgloss.NewStyle().Foreground(m.theme.TextHighlight).Bold(true).Render(remStr)
+	styledTot := lipgloss.NewStyle().Foreground(m.theme.Muted).Render(totStr)
+	firstLine := styledRem + spaces + styledTot
+
+	// 2. Build the progress bar (width 40)
 	width := 40
 	pct := float64(m.remaining) / float64(m.duration)
 	if pct > 1.0 {
@@ -144,21 +137,26 @@ func (m timerModel) View() string {
 
 	barStr := lipgloss.NewStyle().Foreground(m.theme.Primary).Render(filledBar) +
 		lipgloss.NewStyle().Foreground(m.theme.Muted).Render(emptyBar)
-	
-	sb.WriteString(barStr)
-	sb.WriteString("\n")
 
-	// Help / controls
+	// 3. Build help / controls
 	var helpStr string
 	if m.isMonitor {
 		helpStr = "[q/Esc] exit monitoring"
 	} else {
 		helpStr = "[Space] pause/resume • [q/Esc] cancel"
 	}
-	sb.WriteString(lipgloss.NewStyle().Foreground(m.theme.Muted).Render(helpStr))
-	sb.WriteString("\n")
+	styledHelp := lipgloss.NewStyle().Foreground(m.theme.Muted).Render(helpStr)
 
-	return sb.String()
+	// 4. Combine inner view
+	inner := firstLine + "\n" + barStr + "\n" + styledHelp
+
+	// 5. Wrap with a border using lipgloss
+	borderStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(m.theme.Border).
+		Padding(0, 1)
+
+	return borderStyle.Render(inner) + "\n"
 }
 
 func formatDuration(d time.Duration) string {
