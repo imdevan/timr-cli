@@ -1,6 +1,6 @@
 # Configuration
 
-Configuration file location: `$XDG_CONFIG_HOME/go-cli-template/config.toml`
+Configuration file location: `$XDG_CONFIG_HOME/timr/config.toml`
 
 ## Configuration Options
 
@@ -10,8 +10,12 @@ The following options can be set in your configuration file:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `editor` | string | `nvim` | Editor to use for editing bookmarks and config files |
-| `interactive_default` | bool | `false` | Start in interactive mode by default when no arguments are provided |
+| `editor` | string | `nvim` | Editor to use for editing config files |
+| `default_units` | string | `minutes` | Default units when raw number is given (`seconds`, `minutes`, `hours`) |
+| `alarm_sound` | string | `""` | Path to a file, directory (picks random media file), or comma-separated list of files/dirs |
+| `interactive_default` | bool | `true` | Start in interactive mode by default when running a timer |
+| `update_tmux_window` | bool | `false` | When true, rename the active tmux window to the remaining time |
+| `tmux_progress_bar` | bool | `true` | When update_tmux_window is true, prefix window title with Nerd Font weather moon icons showing progress |
 
 ### Display Settings
 
@@ -25,15 +29,11 @@ Colors support named, numeric, or hex values (e.g., `7`, `13`, `"#ff8800"`).
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `headings` | string | `15` | Color for headings |
-| `primary` | string | `02` | Primary color |
-| `secondary` | string | `06` | Secondary color |
-| `text` | string | `07` | Text color |
-| `text_highlight` | string | `06` | Highlighted text color |
-| `description_highlight` | string | `05` | Highlighted description color |
-| `tags` | string | `13` | Tags color |
-| `flags` | string | `12` | Flags color |
-| `muted` | string | `08` | Muted text color |
+| `time_remaining` | string | `14` | Remaining time color |
+| `time_start` | string | `07` | Total/start duration color |
+| `bar_bg` | string | `08` | Background part of progress bar |
+| `bar_fg` | string | `02` | Foreground/filled part of progress bar |
+| `help_text` | string | `08` | Key controls help text color |
 | `border` | string | `08` | Border color |
 
 ## Example Configuration
@@ -41,6 +41,15 @@ Colors support named, numeric, or hex values (e.g., `7`, `13`, `"#ff8800"`).
 ```toml
 # General
 editor = "nvim"
+default_units = "minutes"
+
+# Alarm (pick one style — all handled by alarm_sound):
+# alarm_sound = "/path/to/alarm.mp3"       # single file
+# alarm_sound = "~/Music/alarms/"          # random file from directory
+# alarm_sound = "/a.mp3, /b.mp3, ~/Music/" # CSV list, picks random entry
+
+update_tmux_window = false
+tmux_progress_bar = true
 
 # CLI behavior
 interactive_default = true
@@ -51,15 +60,11 @@ list_spacing = "space"
 
 # Colors
 # Colors support named, numeric, or hex values (ex: 7, 13, "#ff8800").
-headings = "15"
-primary = "02"
-secondary = "06"
-text = "07"
-text_highlight = "06"
-description_highlight = "05"
-tags = "13"
-flags = "12"
-muted = "08"
+time_remaining = "14"
+time_start = "07"
+bar_bg = "08"
+bar_fg = "02"
+help_text = "08"
 border = "08"
 ```
 
@@ -68,19 +73,19 @@ border = "08"
 To create a new configuration file with default values:
 
 ```bash
-bookmark config init
+timr config init
 ```
 
 To overwrite an existing configuration:
 
 ```bash
-bookmark config init --force
+timr config init --force
 ```
 
 To create and immediately open in your editor:
 
 ```bash
-bookmark config init --editor
+timr config init --editor
 ```
 
 ## Editing Configuration
@@ -88,7 +93,7 @@ bookmark config init --editor
 To edit your configuration file:
 
 ```bash
-bookmark config
+timr config
 ```
 
 This will open the config file in your configured editor.

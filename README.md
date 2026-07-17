@@ -1,25 +1,18 @@
-# go-cli-template
+# timr
 
 <img width="480" height="270" alt="screenshot-2026-02-23_16-30-13" src="https://github.com/user-attachments/assets/65386b56-f06f-47be-9063-5c947b30dc51" />
 
-A simple cli timer
+A simple, beautiful, and feature-rich CLI timer.
 
 ## Features
 
-- Interactive list with filtering
-- [Built on go Cobra](https://github.com/spf13/cobra)
-- Configuration management with TOML
-- Styles, build scripts, and tests to get you started.
-- [Inline Bubble Tea TUI components](https://github.com/charmbracelet/bubbletea)
-- Homebrew and aur package management with TOML too!
-- Automatic documentation with [gomarkdoc](https://github.com/princjef/gomarkdoc) and [astro starlight](https://starlight.astro.build/)
-  - With automated github deployment workflow
-- [Just](https://just.systems/) recipes to build and release to your favorite package manager
-  - homebrew tap, AUR, Github release, and manual download are currently supported
-- XDG Base Directory support
-- Utils for NerdFont, and Editor interaction
-- Integration and unit tested
-- Shell completion (bash, zsh, fish, powershell)
+- **Inline TUI timer**: Built with Bubble Tea and Lip Gloss, wrapped in a clean, colored ANSI border.
+- **Flexible inputs**: Start timers with `timr 10`, `timr 10m`, `timr 1:10:10`, etc.
+- **Detached background timers**: Start background timers using `-d` / `--detached` and stop them with `timr stop`.
+- **Tmux integration**: Renames the active Tmux window to show the countdown, and restores it when finished.
+- **Alarm sound & control**: Plays a custom sound on completion — `alarm_sound` accepts a single file, a directory (picks random), or a comma-separated list of files/dirs. Falls back to terminal beeps.
+- **TUI confirmations**: Prompts for confirmation before cancelling a running timer on exit.
+- **Cobra-based CLI**: TOML configuration management, subcommands, and auto-generated shell completion.
 
 ## Author's Note
 
@@ -41,8 +34,8 @@ If you're here; those projects may also interest you! :)
 
 ```bash
 # Clone the repo
-gh repo clone imdevan/go-cli-template
-cd go-cli-template
+gh repo clone imdevan/timr-cli
+cd timr
 
 # Just build and run
 just build-run
@@ -199,10 +192,11 @@ Items marked `*` are updated by `just sync`.
 ## Commands
 
 ```bash
-go-cli-template                 # Root command (placeholder shows folder content)
-go-cli-template config          # View or edit configuration
-go-cli-template config init     # Generate default config file
-go-cli-template completion      # Generate shell completion scripts
+timr [duration]                 # Start a timer or view running timer(s)
+timr stop                       # Stop any active or background timers
+timr config                     # View or edit configuration
+timr config init                # Generate default config file
+timr completion                 # Generate shell completion scripts
 ```
 
 ## Development
@@ -267,24 +261,24 @@ just deploy-all 1.0.0       # Deploy to all targets
 
 ## Configuration
 
-Configuration is stored at `$XDG_CONFIG_HOME/go-cli-template/config.toml` (typically `~/.config/go-cli-template/config.toml`).
+Configuration is stored at `$XDG_CONFIG_HOME/timr/config.toml` (typically `~/.config/timr/config.toml`).
 
 ### Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `editor` | string | `nvim` | Editor opened by `config` and other editor-aware commands |
-| `interactive_default` | bool | `false` | Start in interactive TUI mode when no arguments are given |
+| `default_units` | string | `minutes` | Default units to use when duration is a raw number (`seconds`, `minutes`, `hours`) |
+| `alarm_sound` | string | `""` | Path to a file, directory (picks random media file), or comma-separated list of files/dirs |
+| `interactive_default` | bool | `true` | Start in interactive TUI mode by default |
+| `update_tmux_window` | bool | `false` | When true, rename the active tmux window to the remaining time |
+| `tmux_progress_bar` | bool | `true` | When update_tmux_window is true, prefix window title with Nerd Font weather moon icons showing progress |
 | `list_spacing` | string | `space` | List density: `compact` (title only), `tight` (title + description), `space` (with margins) |
-| `headings` | string | `15` | Heading color |
-| `primary` | string | `02` | Primary accent color |
-| `secondary` | string | `06` | Secondary accent color |
-| `text` | string | `07` | Body text color |
-| `text_highlight` | string | `06` | Highlighted text color |
-| `description_highlight` | string | `05` | Highlighted description color |
-| `tags` | string | `13` | Tags color |
-| `flags` | string | `12` | Flags/key color |
-| `muted` | string | `08` | Muted/dimmed text color |
+| `time_remaining` | string | `14` | Remaining time color |
+| `time_start` | string | `07` | Total/start duration color |
+| `bar_bg` | string | `08` | Background part of progress bar |
+| `bar_fg` | string | `02` | Foreground/filled part of progress bar |
+| `help_text` | string | `08` | Key controls help text color |
 | `border` | string | `08` | Border color |
 
 Colors accept named values, terminal palette indices, or hex strings (e.g. `7`, `"#ff8800"`).
@@ -300,15 +294,15 @@ Colors accept named values, terminal palette indices, or hex strings (e.g. `7`, 
 To generate a config file with defaults:
 
 ```bash
-go-cli-template config init
-go-cli-template config init --force    # Overwrite existing
-go-cli-template config init --editor   # Create and open in editor
+timr config init
+timr config init --force    # Overwrite existing
+timr config init --editor   # Create and open in editor
 ```
 
 To edit the config directly:
 
 ```bash
-go-cli-template config
+timr config
 ```
 
 See `CONFIG.md` for the full reference or `example-config.toml` for a ready-to-copy example.
