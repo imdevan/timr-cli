@@ -86,21 +86,16 @@ func (m *ManagerImpl) Exists() (bool, error) {
 
 type partialConfig struct {
 	Editor               *string `toml:"editor"`
-	Primary              *string `toml:"primary"`
-	Secondary            *string `toml:"secondary"`
-	Headings             *string `toml:"headings"`
-	Text                 *string `toml:"text"`
-	TextHighlight        *string `toml:"text_highlight"`
-	DescriptionHighlight *string `toml:"description_highlight"`
-	Tags                 *string `toml:"tags"`
-	Flags                *string `toml:"flags"`
-	Muted                *string `toml:"muted"`
-	Accent               *string `toml:"accent"`
 	Border               *string `toml:"border"`
 	InteractiveDefault   *bool   `toml:"interactive_default"`
 	ListSpacing          *string `toml:"list_spacing"`
 	DefaultUnits         *string `toml:"default_units"`
 	AlarmSound           *string `toml:"alarm_sound"`
+	TimeRemaining        *string `toml:"time_remaining"`
+	TimeStart            *string `toml:"time_start"`
+	BarBg                *string `toml:"bar_bg"`
+	BarFg                *string `toml:"bar_fg"`
+	HelpText             *string `toml:"help_text"`
 }
 
 func readConfig(path string) (*partialConfig, error) {
@@ -122,36 +117,6 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	if partial.Editor != nil {
 		config.Editor = *partial.Editor
 	}
-	if partial.Primary != nil {
-		config.Primary = *partial.Primary
-	}
-	if partial.Secondary != nil {
-		config.Secondary = *partial.Secondary
-	}
-	if partial.Headings != nil {
-		config.Headings = *partial.Headings
-	}
-	if partial.Text != nil {
-		config.Text = *partial.Text
-	}
-	if partial.TextHighlight != nil {
-		config.TextHighlight = *partial.TextHighlight
-	}
-	if partial.DescriptionHighlight != nil {
-		config.DescriptionHighlight = *partial.DescriptionHighlight
-	}
-	if partial.Tags != nil {
-		config.Tags = *partial.Tags
-	}
-	if partial.Flags != nil {
-		config.Flags = *partial.Flags
-	}
-	if partial.Muted != nil {
-		config.Muted = *partial.Muted
-	}
-	if partial.Accent != nil {
-		config.Accent = *partial.Accent
-	}
 	if partial.Border != nil {
 		config.Border = *partial.Border
 	}
@@ -166,6 +131,21 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.AlarmSound != nil {
 		config.AlarmSound = *partial.AlarmSound
+	}
+	if partial.TimeRemaining != nil {
+		config.TimeRemaining = *partial.TimeRemaining
+	}
+	if partial.TimeStart != nil {
+		config.TimeStart = *partial.TimeStart
+	}
+	if partial.BarBg != nil {
+		config.BarBg = *partial.BarBg
+	}
+	if partial.BarFg != nil {
+		config.BarFg = *partial.BarFg
+	}
+	if partial.HelpText != nil {
+		config.HelpText = *partial.HelpText
 	}
 }
 

@@ -8,42 +8,32 @@ import (
 // Config describes the resolved configuration.
 type Config struct {
 	Editor               string `toml:"editor"`
-	Primary              string `toml:"primary"`
-	Secondary            string `toml:"secondary"`
-	Headings             string `toml:"headings"`
-	Text                 string `toml:"text"`
-	TextHighlight        string `toml:"text_highlight"`
-	DescriptionHighlight string `toml:"description_highlight"`
-	Tags                 string `toml:"tags"`
-	Flags                string `toml:"flags"`
-	Muted                string `toml:"muted"`
-	Accent               string `toml:"accent"`
 	Border               string `toml:"border"`
 	InteractiveDefault   bool   `toml:"interactive_default"`
 	ListSpacing          string `toml:"list_spacing"`
 	DefaultUnits         string `toml:"default_units"`
 	AlarmSound           string `toml:"alarm_sound"`
+	TimeRemaining        string `toml:"time_remaining"`
+	TimeStart            string `toml:"time_start"`
+	BarBg                string `toml:"bar_bg"`
+	BarFg                string `toml:"bar_fg"`
+	HelpText             string `toml:"help_text"`
 }
 
 // DefaultConfig returns the default configuration values.
 func DefaultConfig() Config {
 	return Config{
 		Editor:               "nvim",
-		Headings:             "15",
-		Primary:              "02",
-		Secondary:            "06",
-		Text:                 "07",
-		TextHighlight:        "06",
-		DescriptionHighlight: "05",
-		Tags:                 "13",
-		Flags:                "12",
-		Muted:                "08",
-		Accent:               "13",
 		Border:               "08",
 		InteractiveDefault:   true,
 		ListSpacing:          "space",
 		DefaultUnits:         "minutes",
 		AlarmSound:           "",
+		TimeRemaining:        "14",
+		TimeStart:            "07",
+		BarBg:                "08",
+		BarFg:                "02",
+		HelpText:             "08",
 	}
 }
 

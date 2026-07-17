@@ -133,9 +133,9 @@ func (m timerModel) View() string {
 
 	if m.quitting {
 		if m.cancelled {
-			return lipgloss.NewStyle().Foreground(m.theme.Muted).Render("✗ Timer cancelled.\n")
+			return lipgloss.NewStyle().Foreground(m.theme.HelpText).Render("✗ Timer cancelled.\n")
 		}
-		return lipgloss.NewStyle().Foreground(m.theme.Primary).Bold(true).Render("⏰ Time's up!\n")
+		return lipgloss.NewStyle().Foreground(m.theme.TimeRemaining).Bold(true).Render("⏰ Time's up!\n")
 	}
 
 	// 1. Build the first line: remaining time on left, total duration on right
@@ -152,8 +152,8 @@ func (m timerModel) View() string {
 	}
 	spaces := strings.Repeat(" ", spaceCount)
 
-	styledRem := lipgloss.NewStyle().Foreground(m.theme.TextHighlight).Bold(true).Render(remStr)
-	styledTot := lipgloss.NewStyle().Foreground(m.theme.Muted).Render(totStr)
+	styledRem := lipgloss.NewStyle().Foreground(m.theme.TimeRemaining).Bold(true).Render(remStr)
+	styledTot := lipgloss.NewStyle().Foreground(m.theme.TimeStart).Render(totStr)
 	firstLine := styledRem + spaces + styledTot
 
 	// 2. Build the progress bar (width 40)
@@ -175,8 +175,8 @@ func (m timerModel) View() string {
 	filledBar := strings.Repeat("█", filledLen)
 	emptyBar := strings.Repeat("░", emptyLen)
 
-	barStr := lipgloss.NewStyle().Foreground(m.theme.Primary).Render(filledBar) +
-		lipgloss.NewStyle().Foreground(m.theme.Muted).Render(emptyBar)
+	barStr := lipgloss.NewStyle().Foreground(m.theme.BarFg).Render(filledBar) +
+		lipgloss.NewStyle().Foreground(m.theme.BarBg).Render(emptyBar)
 
 	// 3. Build help / controls
 	var helpStr string
@@ -185,7 +185,7 @@ func (m timerModel) View() string {
 	} else {
 		helpStr = "[Space] pause/resume • [q/Esc] cancel"
 	}
-	styledHelp := lipgloss.NewStyle().Foreground(m.theme.Muted).Render(helpStr)
+	styledHelp := lipgloss.NewStyle().Foreground(m.theme.HelpText).Render(helpStr)
 
 	// 4. Combine inner view
 	inner := firstLine + "\n" + barStr + "\n" + styledHelp
