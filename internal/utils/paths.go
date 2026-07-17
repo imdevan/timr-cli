@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-cli-template/internal/package"
+	"github.com/timr/internal/package"
 )
 
 // XDGConfigHome returns the config home directory with sensible defaults.

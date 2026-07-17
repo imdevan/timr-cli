@@ -125,3 +125,37 @@ func TestTimeAgo_EdgeCases(t *testing.T) {
 		}
 	})
 }
+
+func TestParseDuration(t *testing.T) {
+	tests := []struct {
+		input        string
+		defaultUnits string
+		expected     time.Duration
+		expectErr    bool
+	}{
+		{"10", "minutes", 10 * time.Minute, false},
+		{"10", "seconds", 10 * time.Second, false},
+		{"10.5", "hours", 10*time.Hour + 30*time.Minute, false},
+		{"10h", "minutes", 10 * time.Hour, false},
+		{"10.5h", "minutes", 10*time.Hour + 30*time.Minute, false},
+		{"10m", "minutes", 10 * time.Minute, false},
+		{"10s", "minutes", 10 * time.Second, false},
+		{"1:10:10", "minutes", 1*time.Hour + 10*time.Minute + 10*time.Second, false},
+		{"1:10", "minutes", 1*time.Hour + 10*time.Minute, false},
+		{"", "minutes", 0, true},
+		{"abc", "minutes", 0, true},
+		{"1:abc", "minutes", 0, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input+"_"+tt.defaultUnits, func(t *testing.T) {
+			got, err := ParseDuration(tt.input, tt.defaultUnits)
+			if (err != nil) != tt.expectErr {
+				t.Fatalf("ParseDuration(%q, %q) returned error = %v, want err = %v", tt.input, tt.defaultUnits, err, tt.expectErr)
+			}
+			if !tt.expectErr && got != tt.expected {
+				t.Errorf("ParseDuration(%q, %q) = %v, want %v", tt.input, tt.defaultUnits, got, tt.expected)
+			}
+		})
+	}
+}

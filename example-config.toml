@@ -1,5 +1,7 @@
 # General
 editor = "nvim"
+default_units = "minutes"
+alarm_sound = ""
 
 # CLI behavior
 interactive_default = true

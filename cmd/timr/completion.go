@@ -42,9 +42,9 @@ func runCompletion(cmd *cobra.Command, args []string) error {
 func completionHelp() string {
 	return strings.Join([]string{
 		"Examples:",
-		"  go-cli-template completion bash > /etc/bash_completion.d/go-cli-template",
-		"  go-cli-template completion zsh > ~/.zsh/completion/_go-cli-template",
-		"  go-cli-template completion fish > ~/.config/fish/completions/go-cli-template.fish",
-		"  go-cli-template completion powershell > go-cli-template.ps1",
+		"  timr completion bash > /etc/bash_completion.d/timr",
+		"  timr completion zsh > ~/.zsh/completion/_timr",
+		"  timr completion fish > ~/.config/fish/completions/timr.fish",
+		"  timr completion powershell > timr.ps1",
 	}, "\n")
 }

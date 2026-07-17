@@ -8,8 +8,8 @@ import (
 
 	"github.com/pelletier/go-toml/v2"
 
-	"github.com/go-cli-template/internal/domain"
-	"github.com/go-cli-template/internal/utils"
+	"github.com/timr/internal/domain"
+	"github.com/timr/internal/utils"
 )
 
 // ManagerImpl loads and saves configuration files.
@@ -99,6 +99,8 @@ type partialConfig struct {
 	Border               *string `toml:"border"`
 	InteractiveDefault   *bool   `toml:"interactive_default"`
 	ListSpacing          *string `toml:"list_spacing"`
+	DefaultUnits         *string `toml:"default_units"`
+	AlarmSound           *string `toml:"alarm_sound"`
 }
 
 func readConfig(path string) (*partialConfig, error) {
@@ -158,6 +160,12 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.ListSpacing != nil {
 		config.ListSpacing = *partial.ListSpacing
+	}
+	if partial.DefaultUnits != nil {
+		config.DefaultUnits = *partial.DefaultUnits
+	}
+	if partial.AlarmSound != nil {
+		config.AlarmSound = *partial.AlarmSound
 	}
 }
 

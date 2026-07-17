@@ -8,10 +8,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/go-cli-template/internal/adapters/editor"
-	"github.com/go-cli-template/internal/config"
-	"github.com/go-cli-template/internal/domain"
-	"github.com/go-cli-template/internal/utils"
+	"github.com/timr/internal/adapters/editor"
+	"github.com/timr/internal/config"
+	"github.com/timr/internal/domain"
+	"github.com/timr/internal/utils"
 )
 
 type configInitOptions struct {
@@ -67,9 +67,11 @@ func runConfigInit(cmd *cobra.Command, opts *configInitOptions) error {
 
 func renderConfigTemplate(cfg domain.Config) string {
 	var builder strings.Builder
-	builder.WriteString("# Generic CLI Tool Configuration\n\n")
+	builder.WriteString("# Timr CLI Configuration\n\n")
 	builder.WriteString("# General\n")
 	builder.WriteString(fmt.Sprintf("# editor = %q\n", cfg.Editor))
+	builder.WriteString(fmt.Sprintf("# default_units = %q\n", cfg.DefaultUnits))
+	builder.WriteString(fmt.Sprintf("# alarm_sound = %q\n", cfg.AlarmSound))
 	builder.WriteString("\n# CLI behavior\n")
 	builder.WriteString(fmt.Sprintf("# interactive_default = %t\n", cfg.InteractiveDefault))
 	builder.WriteString("\n# UI\n")

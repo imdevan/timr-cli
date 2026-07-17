@@ -21,6 +21,8 @@ type Config struct {
 	Border               string `toml:"border"`
 	InteractiveDefault   bool   `toml:"interactive_default"`
 	ListSpacing          string `toml:"list_spacing"`
+	DefaultUnits         string `toml:"default_units"`
+	AlarmSound           string `toml:"alarm_sound"`
 }
 
 // DefaultConfig returns the default configuration values.
@@ -40,6 +42,8 @@ func DefaultConfig() Config {
 		Border:               "08",
 		InteractiveDefault:   true,
 		ListSpacing:          "space",
+		DefaultUnits:         "minutes",
+		AlarmSound:           "",
 	}
 }
 
