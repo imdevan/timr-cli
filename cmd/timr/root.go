@@ -98,6 +98,8 @@ func newRootCmd() *cobra.Command {
 				if cmd.Flags().Changed("interactive") {
 					isInteractive = opts.interactive
 				}
+				var finalModel tea.Model
+				var pErr error
 				if isInteractive {
 					m := timerModel{
 						duration:     d,
@@ -109,8 +111,9 @@ func newRootCmd() *cobra.Command {
 						tickInterval: 100 * time.Millisecond,
 					}
 					p := tea.NewProgram(m)
-					if _, err := p.Run(); err != nil {
-						return err
+					finalModel, pErr = p.Run()
+					if pErr != nil {
+						return pErr
 					}
 				} else {
 					// Non-interactive simple countdown
@@ -125,8 +128,43 @@ func newRootCmd() *cobra.Command {
 							remaining = time.Until(endTime)
 						}
 					}
-					fmt.Println("\n⏰ Time's up!")
-					playAlarm(cfg.AlarmSound)
+				}
+
+				// If it is interactive and got cancelled, do not play sound
+				if isInteractive {
+					if m, ok := finalModel.(timerModel); ok && m.cancelled {
+						return nil
+					}
+				}
+
+				fmt.Println("\n⏰ Time's up! Playing alarm... [Press Enter to stop]")
+
+				stopChan := make(chan struct{})
+				go func() {
+					var b [1]byte
+					_, _ = os.Stdin.Read(b[:])
+					select {
+					case <-stopChan:
+					default:
+						close(stopChan)
+					}
+				}()
+
+				playCmd := startPlayAlarmCmd(cfg.AlarmSound)
+				if playCmd != nil {
+					go func() {
+						_ = playCmd.Wait()
+						select {
+						case <-stopChan:
+						default:
+							close(stopChan)
+						}
+					}()
+				}
+
+				<-stopChan
+				if playCmd != nil && playCmd.Process != nil {
+					_ = playCmd.Process.Kill()
 				}
 				return nil
 			}
@@ -270,6 +308,9 @@ func newDaemonRunCmd() *cobra.Command {
 			signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 			go func() {
 				<-sigChan
+				if activePlayCmd != nil && activePlayCmd.Process != nil {
+					_ = activePlayCmd.Process.Kill()
+				}
 				_ = removeActiveTimer(pid)
 				os.Exit(0)
 			}()

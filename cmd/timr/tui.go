@@ -77,7 +77,6 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.remaining <= 0 {
 					m.remaining = 0
 					m.quitting = true
-					go playAlarm(m.alarmSound)
 					return m, tea.Quit
 				}
 			}
@@ -173,6 +172,8 @@ func formatDuration(d time.Duration) string {
 	return fmt.Sprintf("%02d:%02d", m, s)
 }
 
+var activePlayCmd *exec.Cmd
+
 func playAlarm(soundPath string) {
 	if soundPath == "" {
 		beepTerminal()
@@ -190,10 +191,9 @@ func playAlarm(soundPath string) {
 	played := false
 	for _, args := range players {
 		cmd := exec.Command(args[0], args[1:]...)
+		activePlayCmd = cmd
 		if err := cmd.Start(); err == nil {
-			go func(c *exec.Cmd) {
-				_ = c.Wait()
-			}(cmd)
+			_ = cmd.Wait()
 			played = true
 			break
 		}
@@ -202,6 +202,31 @@ func playAlarm(soundPath string) {
 	if !played {
 		beepTerminal()
 	}
+}
+
+func startPlayAlarmCmd(soundPath string) *exec.Cmd {
+	if soundPath == "" {
+		go beepTerminal()
+		return nil
+	}
+
+	players := [][]string{
+		{"mpv", "--no-terminal", soundPath},
+		{"paplay", soundPath},
+		{"aplay", soundPath},
+		{"play", soundPath},
+		{"ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet", soundPath},
+	}
+
+	for _, args := range players {
+		cmd := exec.Command(args[0], args[1:]...)
+		if err := cmd.Start(); err == nil {
+			return cmd
+		}
+	}
+
+	go beepTerminal()
+	return nil
 }
 
 func beepTerminal() {
