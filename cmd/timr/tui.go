@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -246,10 +248,8 @@ func formatDuration(d time.Duration) string {
 	return fmt.Sprintf("%02d:%02d", m, s)
 }
 
-// rainbowColors is the sequence of hues cycled across the bar.
-var rainbowColors = []lipgloss.Color{
-	"#f5bde6", // Pink
-	"#c6a0f6", // Mauve
+// defaultRainbowAnchors is the keyframe sequence for the default rainbow.
+var defaultRainbowAnchors = []lipgloss.Color{
 	"#ed8796", // Red
 	"#ee99a0", // Maroon
 	"#f5a97f", // Peach
@@ -260,6 +260,69 @@ var rainbowColors = []lipgloss.Color{
 	"#7dc4e4", // Sapphire
 	"#8aadf4", // Blue
 	"#b7bdf8", // Lavender
+	"#c6a0f6", // Mauve
+	"#f5bde6", // Pink
+	"#f0c6c6", // Flamingo
+	"#f4dbd6", // Rosewater
+}
+
+func parseHexColor(hex string) (r, g, b float64, ok bool) {
+	hex = strings.TrimPrefix(strings.TrimSpace(hex), "#")
+	if len(hex) == 3 {
+		hex = string([]byte{hex[0], hex[0], hex[1], hex[1], hex[2], hex[2]})
+	}
+	if len(hex) != 6 {
+		return 0, 0, 0, false
+	}
+	val, err := strconv.ParseUint(hex, 16, 32)
+	if err != nil {
+		return 0, 0, 0, false
+	}
+	return float64((val >> 16) & 0xFF), float64((val >> 8) & 0xFF), float64(val & 0xFF), true
+}
+
+// generateCircularGradient builds a smooth closed-loop color palette
+// with even interpolation between keyframes so the end fades into the beginning.
+func generateCircularGradient(anchors []lipgloss.Color) []lipgloss.Color {
+	n := len(anchors)
+	if n == 0 {
+		return nil
+	}
+	if n == 1 {
+		return []lipgloss.Color{anchors[0]}
+	}
+
+	stepsPerSegment := 4
+	if n <= 4 {
+		stepsPerSegment = 16 / n
+		if stepsPerSegment < 4 {
+			stepsPerSegment = 4
+		}
+	}
+
+	var palette []lipgloss.Color
+	for i := 0; i < n; i++ {
+		c1Str := string(anchors[i])
+		c2Str := string(anchors[(i+1)%n])
+
+		r1, g1, b1, ok1 := parseHexColor(c1Str)
+		r2, g2, b2, ok2 := parseHexColor(c2Str)
+
+		if !ok1 || !ok2 {
+			palette = append(palette, anchors[i])
+			continue
+		}
+
+		for s := 0; s < stepsPerSegment; s++ {
+			t := float64(s) / float64(stepsPerSegment)
+			r := uint8(math.Round(r1 + t*(r2-r1)))
+			g := uint8(math.Round(g1 + t*(g2-g1)))
+			b := uint8(math.Round(b1 + t*(b2-b1)))
+			hexStr := fmt.Sprintf("#%02x%02x%02x", r, g, b)
+			palette = append(palette, lipgloss.Color(hexStr))
+		}
+	}
+	return palette
 }
 
 // doneModel is a short-lived Bubble Tea program shown after the timer
@@ -307,15 +370,16 @@ func (d doneModel) View() string {
 
 	var barStr string
 	if d.theme.RainbowBar {
-		colors := d.theme.RainbowColors
-		if len(colors) == 0 {
-			colors = rainbowColors
+		anchors := d.theme.RainbowColors
+		if len(anchors) == 0 {
+			anchors = defaultRainbowAnchors
 		}
+		colors := generateCircularGradient(anchors)
 		n := len(colors)
 		bar := make([]string, width)
 		for i := range bar {
-			// Oscillate: shift the hue offset sinusoidally using phase.
-			colorIdx := (i + d.phase) % n
+			// Oscillate: shift hue with 2 bars (characters) per color step.
+			colorIdx := ((i / 2) + d.phase) % n
 			bar[i] = lipgloss.NewStyle().
 				Foreground(colors[colorIdx]).
 				Render("█")
