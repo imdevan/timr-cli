@@ -1,39 +1,14 @@
 package domain
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/pelletier/go-toml/v2"
 )
 
 // RainbowOption specifies whether the rainbow bar is enabled and optionally custom colors.
 type RainbowOption struct {
 	Enabled bool
 	Colors  []string
-}
-
-// UnmarshalTOML implements custom TOML unmarshaling for RainbowOption.
-// It can unmarshal a boolean (true/false) or an array of strings (custom colors).
-func (r *RainbowOption) UnmarshalTOML(data []byte) error {
-	// Try unmarshaling as boolean
-	var b bool
-	if err := toml.Unmarshal(data, &b); err == nil {
-		r.Enabled = b
-		r.Colors = nil
-		return nil
-	}
-
-	// Try unmarshaling as string slice
-	var s []string
-	if err := toml.Unmarshal(data, &s); err == nil {
-		r.Enabled = true
-		r.Colors = s
-		return nil
-	}
-
-	return fmt.Errorf("rainbow option must be a boolean or a list of color strings")
 }
 
 // Config describes the resolved configuration.

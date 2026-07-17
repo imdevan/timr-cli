@@ -96,10 +96,10 @@ type partialConfig struct {
 	BarBg                *string `toml:"bar_bg"`
 	BarFg                *string `toml:"bar_fg"`
 	HelpText             *string `toml:"help_text"`
-	UpdateTmuxWindow     *bool                 `toml:"update_tmux_window"`
-	TmuxProgressBar      *bool                 `toml:"tmux_progress_bar"`
-	Rainbow              *domain.RainbowOption `toml:"rainbow"`
-	RainbowBar           *domain.RainbowOption `toml:"rainbow_bar"`
+	UpdateTmuxWindow     *bool `toml:"update_tmux_window"`
+	TmuxProgressBar      *bool `toml:"tmux_progress_bar"`
+	Rainbow              any   `toml:"rainbow"`
+	RainbowBar           any   `toml:"rainbow_bar"`
 }
 
 func readConfig(path string) (*partialConfig, error) {
@@ -158,13 +158,33 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 		config.TmuxProgressBar = *partial.TmuxProgressBar
 	}
 	if partial.Rainbow != nil {
-		config.Rainbow = *partial.Rainbow
-		config.RainbowBar = *partial.Rainbow
+		opt := parseRainbowOption(partial.Rainbow)
+		config.Rainbow = opt
+		config.RainbowBar = opt
 	}
 	if partial.RainbowBar != nil {
-		config.RainbowBar = *partial.RainbowBar
-		config.Rainbow = *partial.RainbowBar
+		opt := parseRainbowOption(partial.RainbowBar)
+		config.RainbowBar = opt
+		config.Rainbow = opt
 	}
+}
+
+func parseRainbowOption(val any) domain.RainbowOption {
+	switch v := val.(type) {
+	case bool:
+		return domain.RainbowOption{Enabled: v}
+	case []any:
+		var colors []string
+		for _, item := range v {
+			if s, ok := item.(string); ok {
+				colors = append(colors, s)
+			}
+		}
+		return domain.RainbowOption{Enabled: true, Colors: colors}
+	case []string:
+		return domain.RainbowOption{Enabled: true, Colors: v}
+	}
+	return domain.RainbowOption{Enabled: true}
 }
 
 func expandPath(value string) string {

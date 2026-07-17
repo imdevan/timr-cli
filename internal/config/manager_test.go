@@ -363,3 +363,48 @@ func TestManagerBooleanOverrides(t *testing.T) {
 		t.Error("expected interactive_default to be false from config")
 	}
 }
+
+func TestManagerLoadsRainbowOption(t *testing.T) {
+	t.Run("loads rainbow = false", func(t *testing.T) {
+		root := t.TempDir()
+		cwd := filepath.Join(root, "project")
+		_ = os.MkdirAll(cwd, 0o755)
+		t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
+
+		configPath := utils.ConfigPathGlobal()
+		_ = os.MkdirAll(filepath.Dir(configPath), 0o755)
+		_ = os.WriteFile(configPath, []byte("rainbow = false\n"), 0o644)
+
+		manager := NewManager(cwd)
+		cfg, err := manager.Load()
+		if err != nil {
+			t.Fatalf("load: %v", err)
+		}
+		if cfg.Rainbow.Enabled {
+			t.Error("expected rainbow to be disabled")
+		}
+	})
+
+	t.Run("loads rainbow array of colors", func(t *testing.T) {
+		root := t.TempDir()
+		cwd := filepath.Join(root, "project")
+		_ = os.MkdirAll(cwd, 0o755)
+		t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
+
+		configPath := utils.ConfigPathGlobal()
+		_ = os.MkdirAll(filepath.Dir(configPath), 0o755)
+		_ = os.WriteFile(configPath, []byte(`rainbow = ["#ff0000", "#00ff00"]`+"\n"), 0o644)
+
+		manager := NewManager(cwd)
+		cfg, err := manager.Load()
+		if err != nil {
+			t.Fatalf("load: %v", err)
+		}
+		if !cfg.Rainbow.Enabled {
+			t.Error("expected rainbow to be enabled")
+		}
+		if len(cfg.Rainbow.Colors) != 2 || cfg.Rainbow.Colors[0] != "#ff0000" || cfg.Rainbow.Colors[1] != "#00ff00" {
+			t.Errorf("unexpected rainbow colors: %v", cfg.Rainbow.Colors)
+		}
+	})
+}
