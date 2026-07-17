@@ -167,12 +167,7 @@ func (m timerModel) View() string {
 		if m.cancelled {
 			return lipgloss.NewStyle().Foreground(m.theme.HelpText).Render("✗ Timer cancelled.\n")
 		}
-		msg := lipgloss.NewStyle().Foreground(m.theme.TimeRemaining).Bold(true).Render("⏰ Time's up!")
-		borderStyle := lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(m.theme.Border).
-			Padding(0, 1)
-		return borderStyle.Render(msg) + "\n"
+		return ""
 	}
 
 	// 1. Build the first line: remaining time on left, total duration on right
@@ -231,7 +226,7 @@ func (m timerModel) View() string {
 	borderStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(m.theme.Border).
-		Padding(0, 1)
+		Padding(1, 2)
 
 	return borderStyle.Render(inner) + "\n"
 }

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
@@ -90,7 +91,7 @@ func newRootCmd() *cobra.Command {
 					if err != nil {
 						return fmt.Errorf("failed to start background timer: %w", err)
 					}
-					cmd.Printf("Timer of %s started in background (PID: %d, ending at %s)\n", 
+					cmd.Printf("Timer of %s started in background (PID: %d, ending at %s)\n",
 						formatDuration(d), pid, endTime.Format("15:04:05"))
 					return nil
 				}
@@ -165,7 +166,13 @@ func newRootCmd() *cobra.Command {
 					}
 				}
 
-				fmt.Println("\n⏰ Time's up! Playing alarm... [Press any key to stop]")
+				timesUpLine := lipgloss.NewStyle().Foreground(theme.TimeRemaining).Bold(true).Render("⏰ Time's up!\n")
+				helpLine := lipgloss.NewStyle().Foreground(theme.HelpText).Render("Playing alarm... [Press any key to stop]")
+				borderStyle := lipgloss.NewStyle().
+					Border(lipgloss.RoundedBorder()).
+					BorderForeground(theme.Border).
+					Padding(1, 2)
+				fmt.Println(borderStyle.Render(timesUpLine + "\n" + helpLine))
 
 				stopChan := make(chan struct{})
 				go func() {
