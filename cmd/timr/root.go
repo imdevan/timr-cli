@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
+	"github.com/timr/internal/alarm"
 	"github.com/timr/internal/config"
 	"github.com/timr/internal/domain"
 	pkg "github.com/timr/internal/package"
@@ -119,7 +120,7 @@ func newRootCmd() *cobra.Command {
 						lastTickTime:       time.Now(),
 						endTime:            endTime,
 						theme:              theme,
-						alarmSound:         cfg.AlarmSound,
+						alarmSound:         alarm.Resolve(cfg),
 						tickInterval:       100 * time.Millisecond,
 						updateTmux:         cfg.UpdateTmuxWindow,
 						tmuxProgressBar:    cfg.TmuxProgressBar,
@@ -194,7 +195,7 @@ func newRootCmd() *cobra.Command {
 					}
 				}()
 
-				playCmd := startPlayAlarmCmd(cfg.AlarmSound)
+				playCmd := startPlayAlarmCmd(alarm.Resolve(cfg))
 				if playCmd != nil {
 					go func() {
 						_ = playCmd.Wait()
@@ -365,16 +366,16 @@ func newDaemonRunCmd() *cobra.Command {
 			}()
 
 			cwd, err := os.Getwd()
-			var alarmSound string
+			var resolvedAlarm string
 			if err == nil {
 				manager := config.NewManager(cwd)
 				if cfg, err := manager.Load(); err == nil {
-					alarmSound = cfg.AlarmSound
+					resolvedAlarm = alarm.Resolve(cfg)
 				}
 			}
 
 			time.Sleep(time.Until(endTime))
-			playAlarm(alarmSound)
+			playAlarm(resolvedAlarm)
 
 			return nil
 		},

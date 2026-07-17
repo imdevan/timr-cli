@@ -1,10 +1,14 @@
 # General
 editor = "nvim"
 default_units = "minutes"
-alarm_sound = ""
+# alarm_sound = "/path/to/alarm.mp3"         # single file
+# alarm_sound = "~/Music/alarms/"            # random file from directory
+# alarm_sound = "/a.mp3, /b.mp3, ~/Music/"   # comma-separated list, picks random
 
 # CLI behavior
 interactive_default = true
+update_tmux_window = false
+tmux_progress_bar = true
 
 # UI
 # list_spacing options: compact (title only), tight (title + description, no margin), space (default, with spacing)
@@ -12,13 +16,9 @@ list_spacing = "space"
 
 # Colors
 # Colors support named, numeric, or hex values (ex: 7, 13, "#ff8800").
-headings = "15"
-primary = "02"
-secondary = "06"
-text = "07"
-text_highlight = "06"
-description_highlight = "05"
-tags = "13"
-flags = "12"
-muted = "08"
+time_remaining = "14"
+time_start = "07"
+bar_bg = "08"
+bar_fg = "02"
+help_text = "08"
 border = "08"

@@ -71,7 +71,7 @@ func renderConfigTemplate(cfg domain.Config) string {
 	builder.WriteString("# General\n")
 	builder.WriteString(fmt.Sprintf("# editor = %q\n", cfg.Editor))
 	builder.WriteString(fmt.Sprintf("# default_units = %q\n", cfg.DefaultUnits))
-	builder.WriteString(fmt.Sprintf("# alarm_sound = %q\n", cfg.AlarmSound))
+	builder.WriteString("# alarm_sound = \"/path/to/file.mp3\"  # single file, directory, or CSV list (e.g. \"/a.mp3, ~/Music/\")\n")
 	builder.WriteString("\n# CLI behavior\n")
 	builder.WriteString(fmt.Sprintf("# interactive_default = %t\n", cfg.InteractiveDefault))
 	builder.WriteString(fmt.Sprintf("# update_tmux_window = %t\n", cfg.UpdateTmuxWindow))
