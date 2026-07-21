@@ -36,6 +36,8 @@ type Config struct {
 	PomodoroMessages   PomodoroMessagesConfig `toml:"pomodoro_messages"`
 	Rainbow            RainbowOption          `toml:"rainbow"`
 	RainbowBar         RainbowOption          `toml:"rainbow_bar"`
+	ShowBorder         bool
+	ShowHelpText       bool
 }
 
 // DefaultConfig returns the default configuration values.
@@ -68,6 +70,8 @@ func DefaultConfig() Config {
 		PomodoroMessages:   DefaultPomodoroMessages(),
 		Rainbow:            defaultRainbow,
 		RainbowBar:         defaultRainbow,
+		ShowBorder:         true,
+		ShowHelpText:       true,
 	}
 }
 

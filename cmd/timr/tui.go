@@ -229,14 +229,18 @@ func (m timerModel) View() string {
 
 	width := 40
 	var borderStyle lipgloss.Style
+	vPadTop, vPadBottom := 1, 1
+	if m.vertical && !m.theme.ShowHelpText {
+		vPadBottom = 0
+	}
 	if m.theme.ShowBorder {
 		borderStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(m.theme.Border).
-			Padding(1, 2)
+			Padding(vPadTop, 2, vPadBottom, 2)
 	} else {
 		borderStyle = lipgloss.NewStyle().
-			Padding(1, 2)
+			Padding(vPadTop, 2, vPadBottom, 2)
 	}
 
 	if m.fullWidth && m.termWidth > 0 {
@@ -268,8 +272,8 @@ func (m timerModel) View() string {
 
 		barHeight := 8
 		if m.fullTUI && m.termHeight > 0 {
-			// Overhead: padding (2) + trailing newline (1) = 3
-			overhead := 3
+			// Overhead: top padding + bottom padding + trailing newline
+			overhead := vPadTop + vPadBottom + 1
 			if m.theme.ShowBorder {
 				overhead += 2 // border top + bottom
 			}
@@ -637,6 +641,8 @@ func (d doneModel) View() string {
 			}
 			if d.theme.ShowHelpText {
 				overhead += 3 // help gap (2) + help line (1)
+			} else {
+				// No bottom padding when help text is hidden
 			}
 			availHeight := d.termHeight - overhead
 			if availHeight > 3 {

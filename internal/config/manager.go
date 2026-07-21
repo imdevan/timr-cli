@@ -86,7 +86,7 @@ func (m *ManagerImpl) Exists() (bool, error) {
 
 type partialConfig struct {
 	Editor               *string `toml:"editor"`
-	Border               *string `toml:"border"`
+	Border               any     `toml:"border"`
 	InteractiveDefault   *bool   `toml:"interactive_default"`
 	ListSpacing          *string `toml:"list_spacing"`
 	DefaultUnits         *string `toml:"default_units"`
@@ -96,7 +96,7 @@ type partialConfig struct {
 	TimeStart            *string `toml:"time_start"`
 	BarBg                *string `toml:"bar_bg"`
 	BarFg                any     `toml:"bar_fg"`
-	HelpText             *string `toml:"help_text"`
+	HelpText             any     `toml:"help_text"`
 	UpdateTmuxWindow     *bool `toml:"update_tmux_window"`
 	TmuxProgressBar      *bool `toml:"tmux_progress_bar"`
 	TmuxInverted         *bool `toml:"tmux_inverted"`
@@ -130,7 +130,12 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 		config.Editor = *partial.Editor
 	}
 	if partial.Border != nil {
-		config.Border = *partial.Border
+		switch v := partial.Border.(type) {
+		case bool:
+			config.ShowBorder = v
+		case string:
+			config.Border = v
+		}
 	}
 	if partial.InteractiveDefault != nil {
 		config.InteractiveDefault = *partial.InteractiveDefault
@@ -160,7 +165,12 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 		config.BarFg = parseBarFg(partial.BarFg)
 	}
 	if partial.HelpText != nil {
-		config.HelpText = *partial.HelpText
+		switch v := partial.HelpText.(type) {
+		case bool:
+			config.ShowHelpText = v
+		case string:
+			config.HelpText = v
+		}
 	}
 	if partial.UpdateTmuxWindow != nil {
 		config.UpdateTmuxWindow = *partial.UpdateTmuxWindow

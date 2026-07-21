@@ -165,12 +165,19 @@ func (m ConfirmationModel) View() string {
 		help,
 	}, "\n")
 
-	view := lipgloss.NewStyle().
-		Margin(1, 1).
-		Padding(1, 2).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(m.theme.Border).
-		Render(content)
+	var view string
+	if m.theme.ShowBorder {
+		view = lipgloss.NewStyle().
+			Margin(1, 1).
+			Padding(1, 2).
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(m.theme.Border).
+			Render(content)
+	} else {
+		view = lipgloss.NewStyle().
+			Padding(1, 2).
+			Render(content)
+	}
 
 	if m.fullTUI && m.termWidth > 0 && m.termHeight > 0 {
 		return PlaceCenter(m.termWidth, m.termHeight, view)

@@ -33,6 +33,8 @@ type Theme struct {
 	// Feature flags
 	RainbowBar    bool
 	RainbowColors []lipgloss.Color
+	ShowBorder    bool
+	ShowHelpText  bool
 }
 
 // ThemeFromConfig builds a theme with safe fallbacks.
@@ -79,6 +81,8 @@ func ThemeFromConfig(cfg domain.Config) Theme {
 		Border:        border,
 		RainbowBar:    cfg.Rainbow.Enabled && cfg.RainbowBar.Enabled,
 		RainbowColors: customRainbow,
+		ShowBorder:    cfg.ShowBorder,
+		ShowHelpText:  cfg.ShowHelpText,
 
 		// Maps for backward compatibility
 		Headings:             timeRemaining,
