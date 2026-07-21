@@ -82,7 +82,7 @@ func newRootCmd() *cobra.Command {
 			}
 
 			if durationStr != "" {
-				_, err := runSingleTimer(cmd, cfg, theme, durationStr, opts)
+				_, err := runSingleTimer(cmd, cfg, theme, durationStr, "", opts)
 				return err
 			}
 
@@ -291,7 +291,7 @@ func makeProgramOpts(cfg domain.Config) []tea.ProgramOption {
 	return opts
 }
 
-func runSingleTimer(cmd *cobra.Command, cfg domain.Config, theme ui.Theme, durationStr string, opts *rootOptions) (bool, error) {
+func runSingleTimer(cmd *cobra.Command, cfg domain.Config, theme ui.Theme, durationStr string, pomodoroProgress string, opts *rootOptions) (bool, error) {
 	d, err := utils.ParseDuration(durationStr, cfg.DefaultUnits)
 	if err != nil {
 		return false, fmt.Errorf("failed to parse duration %q: %w", durationStr, err)
@@ -343,6 +343,7 @@ func runSingleTimer(cmd *cobra.Command, cfg domain.Config, theme ui.Theme, durat
 			rainbowBar:         cfg.Rainbow.Enabled && cfg.RainbowBar.Enabled,
 			fullWidth:          cfg.FullWidth,
 			fullTUI:            cfg.FullTUI,
+			pomodoroProgress:   pomodoroProgress,
 		}
 		p := tea.NewProgram(m, makeProgramOpts(cfg)...)
 		finalModel, pErr = p.Run()

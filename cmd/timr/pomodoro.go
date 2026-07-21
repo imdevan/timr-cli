@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/timr/internal/config"
@@ -48,7 +49,8 @@ func newPomodoroCmd(opts *rootOptions) *cobra.Command {
 			for {
 				for i, minutes := range sequence {
 					durationStr := fmt.Sprintf("%dm", minutes)
-					cancelled, err := runSingleTimer(cmd, cfg, theme, durationStr, opts)
+					progressStr := fmt.Sprintf("[%d/%d]", i+1, len(sequence))
+					cancelled, err := runSingleTimer(cmd, cfg, theme, durationStr, progressStr, opts)
 					if err != nil {
 						return err
 					}
@@ -59,9 +61,13 @@ func newPomodoroCmd(opts *rootOptions) *cobra.Command {
 
 					if isInteractive {
 						msg := domain.GetPomodoroMessage(cfg.PomodoroMessages, i, len(sequence))
+						title := fmt.Sprintf("[%d/%d] %s", i+1, len(sequence), msg)
+						if strings.TrimSpace(msg) == "" {
+							title = fmt.Sprintf("[%d/%d] Pomodoro", i+1, len(sequence))
+						}
 						prompt := domain.GetPomodoroPrompt(i+1, len(sequence))
 
-						confirmed, err := ui.PromptConfirmation(msg, prompt, theme, cfg.FullTUI)
+						confirmed, err := ui.PromptConfirmation(title, prompt, theme, cfg.FullTUI)
 						if err != nil || !confirmed {
 							cmd.Println("Pomodoro sequence stopped.")
 							return nil

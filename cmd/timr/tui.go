@@ -47,6 +47,7 @@ type timerModel struct {
 	rainbowBar         bool
 	fullWidth          bool
 	fullTUI            bool
+	pomodoroProgress   string
 	termWidth          int
 	termHeight         int
 }
@@ -243,6 +244,9 @@ func (m timerModel) View() string {
 
 	// 1. Build the first line: remaining time on left, total duration on right
 	remStr := formatDuration(m.remaining)
+	if m.pomodoroProgress != "" {
+		remStr = m.pomodoroProgress + " " + remStr
+	}
 	if m.paused {
 		remStr = remStr + " [PAUSED]"
 	}
