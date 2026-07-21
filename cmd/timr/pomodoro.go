@@ -38,14 +38,37 @@ func newPomodoroCmd(opts *rootOptions) *cobra.Command {
 				sequence = domain.DefaultConfig().Pomodoro
 			}
 
-			for i, minutes := range sequence {
-				durationStr := fmt.Sprintf("%dm", minutes)
-				cancelled, err := runSingleTimer(cmd, cfg, theme, durationStr, opts)
-				if err != nil {
-					return err
+			isInteractive := cfg.InteractiveDefault
+			if cmd.Flags().Changed("interactive") {
+				isInteractive = opts.interactive
+			}
+
+
+
+			for {
+				for i, minutes := range sequence {
+					durationStr := fmt.Sprintf("%dm", minutes)
+					cancelled, err := runSingleTimer(cmd, cfg, theme, durationStr, opts)
+					if err != nil {
+						return err
+					}
+					if cancelled {
+						cmd.Printf("Pomodoro sequence cancelled at step %d/%d.\n", i+1, len(sequence))
+						return nil
+					}
+
+					if isInteractive {
+						msg := domain.GetPomodoroMessage(cfg.PomodoroMessages, i, len(sequence))
+						prompt := domain.GetPomodoroPrompt(i+1, len(sequence))
+
+						confirmed, err := ui.PromptConfirmation(msg, prompt, theme, cfg.FullTUI)
+						if err != nil || !confirmed {
+							cmd.Println("Pomodoro sequence stopped.")
+							return nil
+						}
+					}
 				}
-				if cancelled {
-					cmd.Printf("Pomodoro sequence cancelled at step %d/%d.\n", i+1, len(sequence))
+				if !isInteractive {
 					break
 				}
 			}

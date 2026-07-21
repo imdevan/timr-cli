@@ -103,6 +103,7 @@ type partialConfig struct {
 	FullWidth            *bool `toml:"full_width"`
 	FullTUI              *bool `toml:"full_tui"`
 	Pomodoro             any   `toml:"pomodoro"`
+	PomodoroMessages     any   `toml:"pomodoro_messages"`
 	Rainbow              any   `toml:"rainbow"`
 	RainbowBar           any   `toml:"rainbow_bar"`
 }
@@ -176,6 +177,9 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.Pomodoro != nil {
 		config.Pomodoro = parsePomodoro(partial.Pomodoro)
+	}
+	if partial.PomodoroMessages != nil {
+		config.PomodoroMessages = parsePomodoroMessages(partial.PomodoroMessages, config.PomodoroMessages)
 	}
 	if partial.Rainbow != nil {
 		opt := parseRainbowOption(partial.Rainbow)
@@ -278,6 +282,54 @@ func parsePomodoro(val any) []int {
 		return domain.DefaultConfig().Pomodoro
 	}
 	return seq
+}
+
+func parseStringList(val any) []string {
+	var res []string
+	switch v := val.(type) {
+	case string:
+		res = append(res, v)
+	case []any:
+		for _, item := range v {
+			if s, ok := item.(string); ok {
+				res = append(res, s)
+			}
+		}
+	case []string:
+		res = append(res, v...)
+	}
+	return res
+}
+
+func parsePomodoroMessages(val any, base domain.PomodoroMessagesConfig) domain.PomodoroMessagesConfig {
+	res := base
+	m, ok := val.(map[string]any)
+	if !ok {
+		return res
+	}
+
+	if v, exists := m["after_first_work"]; exists {
+		res.AfterFirstWork = parseStringList(v)
+	}
+	if v, exists := m["after_first_break"]; exists {
+		res.AfterFirstBreak = parseStringList(v)
+	}
+	if v, exists := m["after_second_work"]; exists {
+		res.AfterSecondWork = parseStringList(v)
+	}
+	if v, exists := m["after_second_break"]; exists {
+		res.AfterSecondBreak = parseStringList(v)
+	}
+	if v, exists := m["before_last_work"]; exists {
+		res.BeforeLastWork = parseStringList(v)
+	}
+	if v, exists := m["after_last_work"]; exists {
+		res.AfterLastWork = parseStringList(v)
+	}
+	if v, exists := m["after_last_break"]; exists {
+		res.AfterLastBreak = parseStringList(v)
+	}
+	return res
 }
 
 func expandPath(value string) string {

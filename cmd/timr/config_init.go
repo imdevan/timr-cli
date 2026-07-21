@@ -72,12 +72,22 @@ func renderConfigTemplate(cfg domain.Config) string {
 	builder.WriteString("# General\n")
 	builder.WriteString(fmt.Sprintf("# editor = %q\n", cfg.Editor))
 	builder.WriteString(fmt.Sprintf("# default_units = %q\n", cfg.DefaultUnits))
+	builder.WriteString(fmt.Sprintf("# default_timer = %q  # Default duration when run without args (e.g. \"25m\")\n", cfg.DefaultTimer))
 	var pomodoroParts []string
 	for _, n := range cfg.Pomodoro {
 		pomodoroParts = append(pomodoroParts, strconv.Itoa(n))
 	}
 	builder.WriteString(fmt.Sprintf("# pomodoro = [%s]  # Sequence of minutes for pomodoro command\n", strings.Join(pomodoroParts, ", ")))
 	builder.WriteString("# alarm_sound = \"/path/to/file.mp3\"  # single file, directory, or CSV list (e.g. \"/a.mp3, ~/Music/\")\n")
+	builder.WriteString("\n# Pomodoro Messages (single string or array of strings for randomized pick)\n")
+	builder.WriteString("# [pomodoro_messages]\n")
+	builder.WriteString("# after_first_work = [\"You're off to a great start!\", \"One small timer, one big step!\"]\n")
+	builder.WriteString("# after_first_break = \"You got this!\"\n")
+	builder.WriteString("# after_second_work = [\"Hell yeah!\", \"Nice job!\"]\n")
+	builder.WriteString("# after_second_break = \"\"\n")
+	builder.WriteString("# before_last_work = \"You're almost there!\"\n")
+	builder.WriteString("# after_last_work = \"You did it!\"\n")
+	builder.WriteString("# after_last_break = \"You freaking rock!\"\n")
 	builder.WriteString("\n# CLI behavior\n")
 	builder.WriteString(fmt.Sprintf("# interactive_default = %t\n", cfg.InteractiveDefault))
 	builder.WriteString(fmt.Sprintf("# update_tmux_window = %t\n", cfg.UpdateTmuxWindow))

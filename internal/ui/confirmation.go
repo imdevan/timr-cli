@@ -57,11 +57,18 @@ import (
 //	    return m.confirm.View()
 //	}
 type ConfirmationModel struct {
-	title   string
-	prompt  string
-	choice  *bool
-	confirm *huh.Confirm
-	theme   Theme
+	title      string
+	prompt     string
+	choice     *bool
+	confirm    *huh.Confirm
+	theme      Theme
+	fullTUI    bool
+	termWidth  int
+	termHeight int
+}
+
+func (m *ConfirmationModel) SetFullTUI(fullTUI bool) {
+	m.fullTUI = fullTUI
 }
 
 // NewConfirmationModel creates a new confirmation dialog
@@ -99,6 +106,11 @@ func (m ConfirmationModel) Init() tea.Cmd {
 
 // Update handles messages for the confirmation dialog
 func (m ConfirmationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if wmsg, ok := msg.(tea.WindowSizeMsg); ok {
+		m.termWidth = wmsg.Width
+		m.termHeight = wmsg.Height
+	}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -153,12 +165,17 @@ func (m ConfirmationModel) View() string {
 		help,
 	}, "\n")
 
-	return lipgloss.NewStyle().
+	view := lipgloss.NewStyle().
 		Margin(1, 1).
 		Padding(1, 2).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(m.theme.Border).
 		Render(content)
+
+	if m.fullTUI && m.termWidth > 0 && m.termHeight > 0 {
+		return PlaceCenter(m.termWidth, m.termHeight, view)
+	}
+	return view
 }
 
 // ChoiceValue returns the user's choice
@@ -177,9 +194,15 @@ func (m ConfirmationModel) setChoice(value bool) {
 }
 
 // PromptConfirmation runs a confirmation dialog and returns the user's choice
-func PromptConfirmation(title, prompt string, theme Theme) (bool, error) {
+func PromptConfirmation(title, prompt string, theme Theme, fullTUI bool) (bool, error) {
 	model := NewConfirmationModel(title, prompt, theme)
-	program := tea.NewProgram(model, tea.WithoutSignalHandler())
+	model.SetFullTUI(fullTUI)
+
+	var opts []tea.ProgramOption
+	if fullTUI {
+		opts = append(opts, tea.WithAltScreen())
+	}
+	program := tea.NewProgram(model, opts...)
 	result, err := program.Run()
 	if err != nil {
 		return false, err

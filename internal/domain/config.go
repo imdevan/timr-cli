@@ -30,9 +30,10 @@ type Config struct {
 	TmuxInverted       bool          `toml:"tmux_inverted"`
 	FullWidth          bool          `toml:"full_width"`
 	FullTUI            bool          `toml:"full_tui"`
-	Pomodoro           []int         `toml:"pomodoro"`
-	Rainbow            RainbowOption `toml:"rainbow"`
-	RainbowBar         RainbowOption `toml:"rainbow_bar"`
+	Pomodoro           []int                  `toml:"pomodoro"`
+	PomodoroMessages   PomodoroMessagesConfig `toml:"pomodoro_messages"`
+	Rainbow            RainbowOption          `toml:"rainbow"`
+	RainbowBar         RainbowOption          `toml:"rainbow_bar"`
 }
 
 // DefaultConfig returns the default configuration values.
@@ -60,6 +61,7 @@ func DefaultConfig() Config {
 		FullWidth:          true,
 		FullTUI:            true,
 		Pomodoro:           []int{25, 5, 25, 5, 25, 20},
+		PomodoroMessages:   DefaultPomodoroMessages(),
 		Rainbow:            defaultRainbow,
 		RainbowBar:         defaultRainbow,
 	}

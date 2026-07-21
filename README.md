@@ -279,6 +279,20 @@ Configuration is stored at `$XDG_CONFIG_HOME/timr/config.toml` (typically `~/.co
 | `full_width` | bool | `true` | When true, progress bar and TUI width flex to the full width of the terminal |
 | `full_tui` | bool | `true` | When true, render TUI in full window alternate screen mode |
 | `rainbow` | bool or []string | `true` | Show an oscillating rainbow progress bar on completion (`true`), disable it (`false`), or pass custom array of color hexes/names |
+
+### `[pomodoro_messages]`
+
+Configures contextual messages for pomodoro phase transitions. Options accept a single string or an array of strings (randomized when selected).
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `after_first_work` | string or []string | `["You're off to a great start!", "One small timer, one big step!"]` | Message after 1st work block |
+| `after_first_break` | string or []string | `["You got this!"]` | Message after 1st break block |
+| `after_second_work` | string or []string | `["Hell yeah!", "Nice job!"]` | Message after 2nd work block |
+| `after_second_break` | string or []string | `[""]` | Message after 2nd break block |
+| `before_last_work` | string or []string | `["You're almost there!"]` | Message before starting last work block |
+| `after_last_work` | string or []string | `["You did it!"]` | Message after finishing last work block |
+| `after_last_break` | string or []string | `["You freaking rock!"]` | Message after finishing last break / final block |
 | `list_spacing` | string | `space` | List density: `compact` (title only), `tight` (title + description), `space` (with margins) |
 | `time_remaining` | string | `14` | Remaining time color |
 | `time_start` | string | `07` | Total/start duration color |

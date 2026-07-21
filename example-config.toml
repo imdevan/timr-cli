@@ -3,6 +3,15 @@ editor = "nvim"
 default_units = "minutes"
 # default_timer = "25m"                        # default timer duration when run with no arguments
 # pomodoro = [25, 5, 25, 5, 25, 20]            # sequence of minutes for pomodoro command
+
+# [pomodoro_messages]
+# after_first_work = ["You're off to a great start!", "One small timer, one big step!"]
+# after_first_break = "You got this!"
+# after_second_work = ["Hell yeah!", "Nice job!"]
+# after_second_break = ""
+# before_last_work = "You're almost there!"
+# after_last_work = "You did it!"
+# after_last_break = "You freaking rock!"
 # alarm_sound = "/path/to/alarm.mp3"         # single file
 # alarm_sound = "~/Music/alarms/"            # random file from directory
 # alarm_sound = "/a.mp3, /b.mp3, ~/Music/"   # comma-separated list, picks random
