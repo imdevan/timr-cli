@@ -122,6 +122,7 @@ func newRootCmd() *cobra.Command {
 						tickInterval:       100 * time.Millisecond,
 						updateTmux:         cfg.UpdateTmuxWindow,
 						tmuxProgressBar:    cfg.TmuxProgressBar,
+						tmuxInverted:       cfg.TmuxInverted,
 						originalTmuxWindow: originalTmux,
 						lastTmuxSeconds:    -1,
 						rainbowBar:         cfg.Rainbow.Enabled && cfg.RainbowBar.Enabled,
@@ -146,7 +147,7 @@ func newRootCmd() *cobra.Command {
 							remSec := int(remaining.Round(time.Second).Seconds())
 							if remSec != lastTmuxSec {
 								lastTmuxSec = remSec
-								setTmuxWindowName(timeremaining.Format(remaining, d, false, cfg.TmuxProgressBar))
+								setTmuxWindowName(timeremaining.Format(remaining, d, false, cfg.TmuxProgressBar, cfg.TmuxInverted))
 							}
 						}
 

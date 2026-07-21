@@ -5,26 +5,44 @@ import (
 	"time"
 )
 
-var moonPhases = []rune{
-	'', // 100% remaining: weather-moon_alt_new (\ue3eb)
-	'', // 93% remaining: weather-moon_alt_waxing_crescent_1 (\ue3d0)
-	'', // 86% remaining: weather-moon_alt_waxing_crescent_2 (\ue3d1)
-	'', // 79% remaining: weather-moon_alt_waxing_crescent_3 (\ue3d2)
-	'', // 72% remaining: weather-moon_alt_waxing_crescent_4 (\ue3d3)
-	'', // 65% remaining: weather-moon_alt_waxing_crescent_5 (\ue3d4)
-	'', // 58% remaining: weather-moon_alt_waxing_crescent_6 (\ue3d5)
-	'', // 51% remaining: weather-moon_alt_first_quarter (\ue3d6)
-	'', // 44% remaining: weather-moon_alt_waxing_gibbous_1 (\ue3d7)
-	'', // 37% remaining: weather-moon_alt_waxing_gibbous_2 (\ue3d8)
-	'', // 30% remaining: weather-moon_alt_waxing_gibbous_3 (\ue3d9)
-	'', // 23% remaining: weather-moon_alt_waxing_gibbous_4 (\ue3da)
-	'', // 16% remaining: weather-moon_alt_waxing_gibbous_5 (\ue3db)
-	'', // 9% remaining: weather-moon_alt_waxing_gibbous_6 (\ue3dc)
-	'', // 2% remaining (and below): weather-moon_alt_full (\ue3dd)
+var standardMoonPhases = []rune{
+	'\ue3e3', // nf-weather-moon_alt_new (\ue3e3)
+	'\ue3c8', // nf-weather-moon_alt_waxing_crescent_1 (\ue3c8)
+	'\ue3c9', // nf-weather-moon_alt_waxing_crescent_2 (\ue3c9)
+	'\ue3ca', // nf-weather-moon_alt_waxing_crescent_3 (\ue3ca)
+	'\ue3cb', // nf-weather-moon_alt_waxing_crescent_4 (\ue3cb)
+	'\ue3cc', // nf-weather-moon_alt_waxing_crescent_5 (\ue3cc)
+	'\ue3cd', // nf-weather-moon_alt_waxing_crescent_6 (\ue3cd)
+	'\ue3ce', // nf-weather-moon_alt_first_quarter (\ue3ce)
+	'\ue3cf', // nf-weather-moon_alt_waxing_gibbous_1 (\ue3cf)
+	'\ue3d0', // nf-weather-moon_alt_waxing_gibbous_2 (\ue3d0)
+	'\ue3d1', // nf-weather-moon_alt_waxing_gibbous_3 (\ue3d1)
+	'\ue3d2', // nf-weather-moon_alt_waxing_gibbous_4 (\ue3d2)
+	'\ue3d3', // nf-weather-moon_alt_waxing_gibbous_5 (\ue3d3)
+	'\ue3d4', // nf-weather-moon_alt_waxing_gibbous_6 (\ue3d4)
+	'\ue3d5', // nf-weather-moon_alt_full (\ue3d5)
+}
+
+var invertedMoonPhases = []rune{
+	'\ue3d5', // nf-weather-moon_alt_full (\ue3d5)
+	'\ue3d6', // nf-weather-moon_alt_waning_gibbous_1 (\ue3d6)
+	'\ue3d7', // nf-weather-moon_alt_waning_gibbous_2 (\ue3d7)
+	'\ue3d8', // nf-weather-moon_alt_waning_gibbous_3 (\ue3d8)
+	'\ue3d9', // nf-weather-moon_alt_waning_gibbous_4 (\ue3d9)
+	'\ue3da', // nf-weather-moon_alt_waning_gibbous_5 (\ue3da)
+	'\ue3db', // nf-weather-moon_alt_waning_gibbous_6 (\ue3db)
+	'\ue3dc', // nf-weather-moon_alt_third_quarter (\ue3dc)
+	'\ue3dd', // nf-weather-moon_alt_waning_crescent_1 (\ue3dd)
+	'\ue3de', // nf-weather-moon_alt_waning_crescent_2 (\ue3de)
+	'\ue3df', // nf-weather-moon_alt_waning_crescent_3 (\ue3df)
+	'\ue3e0', // nf-weather-moon_alt_waning_crescent_4 (\ue3e0)
+	'\ue3e1', // nf-weather-moon_alt_waning_crescent_5 (\ue3e1)
+	'\ue3e2', // nf-weather-moon_alt_waning_crescent_6 (\ue3e2)
+	'\ue3e3', // nf-weather-moon_alt_new (\ue3e3)
 }
 
 // Format returns the formatted string for the tmux window.
-func Format(remaining, total time.Duration, paused bool, showProgressBar bool) string {
+func Format(remaining, total time.Duration, paused bool, showProgressBar bool, inverted bool) string {
 	h := int(remaining.Hours())
 	m := int(remaining.Minutes()) % 60
 	s := int(remaining.Seconds()) % 60
@@ -77,7 +95,11 @@ func Format(remaining, total time.Duration, paused bool, showProgressBar bool) s
 		} else {
 			idx = 14
 		}
-		prefix = string(moonPhases[idx]) + " "
+		phases := standardMoonPhases
+		if inverted {
+			phases = invertedMoonPhases
+		}
+		prefix = string(phases[idx]) + " "
 	} else {
 		prefix = "⏰ "
 	}

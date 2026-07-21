@@ -32,6 +32,7 @@ type timerModel struct {
 	confirmModel       *ui.ConfirmationModel
 	updateTmux         bool
 	tmuxProgressBar    bool
+	tmuxInverted       bool
 	originalTmuxWindow string
 	lastTmuxSeconds    int
 	rainbowBar         bool
@@ -76,7 +77,7 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						} else {
 							m.lastTickTime = time.Now()
 							if m.updateTmux && os.Getenv("TMUX") != "" {
-								setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar))
+								setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar, m.tmuxInverted))
 							}
 							return m, tick(m.tickInterval)
 						}
@@ -113,12 +114,12 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.paused = false
 					m.lastTickTime = time.Now()
 					if m.updateTmux && os.Getenv("TMUX") != "" {
-						setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar))
+						setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar, m.tmuxInverted))
 					}
 				} else {
 					m.paused = true
 					if m.updateTmux && os.Getenv("TMUX") != "" {
-						setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar))
+						setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar, m.tmuxInverted))
 					}
 				}
 			}
@@ -154,7 +155,7 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					remSec := int(m.remaining.Round(time.Second).Seconds())
 					if remSec != m.lastTmuxSeconds {
 						m.lastTmuxSeconds = remSec
-						setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar))
+						setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar, m.tmuxInverted))
 					}
 				}
 			}

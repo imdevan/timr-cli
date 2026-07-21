@@ -98,6 +98,7 @@ type partialConfig struct {
 	HelpText             *string `toml:"help_text"`
 	UpdateTmuxWindow     *bool `toml:"update_tmux_window"`
 	TmuxProgressBar      *bool `toml:"tmux_progress_bar"`
+	TmuxInverted         *bool `toml:"tmux_inverted"`
 	FullWidth            *bool `toml:"full_width"`
 	Rainbow              any   `toml:"rainbow"`
 	RainbowBar           any   `toml:"rainbow_bar"`
@@ -157,6 +158,9 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.TmuxProgressBar != nil {
 		config.TmuxProgressBar = *partial.TmuxProgressBar
+	}
+	if partial.TmuxInverted != nil {
+		config.TmuxInverted = *partial.TmuxInverted
 	}
 	if partial.FullWidth != nil {
 		config.FullWidth = *partial.FullWidth

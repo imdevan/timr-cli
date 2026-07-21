@@ -16,6 +16,7 @@ The following options can be set in your configuration file:
 |--------|------|---------|-------------|
 | `editor` | string | `nvim` | Editor to use for editing bookmarks and config files |
 | `interactive_default` | bool | `false` | Start in interactive mode by default when no arguments are provided |
+| `tmux_inverted` | bool | `false` | When true, use inverted moon icon set for tmux progress bar |
 | `full_width` | bool | `true` | When true, progress bar and TUI width flex to the full width of the terminal |
 
 ### Display Settings

@@ -138,4 +138,4 @@ publish-aur version="": build
 publish version="": build
 	{{cli_pack}} publish all {{version}}
 
-
+deploy: release update publish
