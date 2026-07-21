@@ -18,6 +18,7 @@ The following options can be set in your configuration file:
 | `tmux_progress_bar` | bool | `true` | When update_tmux_window is true, prefix window title with Nerd Font weather moon icons showing progress |
 | `tmux_inverted` | bool | `false` | When true, use the inverted moon icon set for the tmux progress bar |
 | `full_width` | bool | `true` | When true, progress bar and TUI width flex to the full width of the terminal |
+| `full_tui` | bool | `true` | When true, render TUI in full window alternate screen mode |
 | `rainbow` | bool or []string | `true` | Show an oscillating rainbow progress bar on completion (`true`), disable it (`false`), or pass a custom array of color hexes/names |
 
 ### Display Settings

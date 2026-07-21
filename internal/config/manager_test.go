@@ -395,6 +395,27 @@ func TestManagerLoadsFullWidth(t *testing.T) {
 	}
 }
 
+func TestManagerLoadsFullTUI(t *testing.T) {
+	root := t.TempDir()
+	cwd := filepath.Join(root, "project")
+	_ = os.MkdirAll(cwd, 0o755)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
+
+	configPath := utils.ConfigPathGlobal()
+	_ = os.MkdirAll(filepath.Dir(configPath), 0o755)
+	_ = os.WriteFile(configPath, []byte("full_tui = false\n"), 0o644)
+
+	manager := NewManager(cwd)
+	cfg, err := manager.Load()
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+
+	if cfg.FullTUI {
+		t.Error("expected full_tui to be false when overridden")
+	}
+}
+
 
 func TestManagerLoadsRainbowOption(t *testing.T) {
 	t.Run("loads rainbow = false", func(t *testing.T) {

@@ -100,6 +100,7 @@ type partialConfig struct {
 	TmuxProgressBar      *bool `toml:"tmux_progress_bar"`
 	TmuxInverted         *bool `toml:"tmux_inverted"`
 	FullWidth            *bool `toml:"full_width"`
+	FullTUI              *bool `toml:"full_tui"`
 	Rainbow              any   `toml:"rainbow"`
 	RainbowBar           any   `toml:"rainbow_bar"`
 }
@@ -164,6 +165,9 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.FullWidth != nil {
 		config.FullWidth = *partial.FullWidth
+	}
+	if partial.FullTUI != nil {
+		config.FullTUI = *partial.FullTUI
 	}
 	if partial.Rainbow != nil {
 		opt := parseRainbowOption(partial.Rainbow)

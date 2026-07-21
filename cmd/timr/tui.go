@@ -46,7 +46,9 @@ type timerModel struct {
 	lastTmuxSeconds    int
 	rainbowBar         bool
 	fullWidth          bool
+	fullTUI            bool
 	termWidth          int
+	termHeight         int
 }
 
 func (m timerModel) Init() tea.Cmd {
@@ -64,6 +66,7 @@ func tick(d time.Duration) tea.Cmd {
 func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if wmsg, ok := msg.(tea.WindowSizeMsg); ok {
 		m.termWidth = wmsg.Width
+		m.termHeight = wmsg.Height
 	}
 
 	if m.confirmMode && m.confirmModel != nil {
@@ -205,7 +208,11 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m timerModel) View() string {
 	if m.confirmMode && m.confirmModel != nil {
-		return m.confirmModel.View()
+		confirmView := m.confirmModel.View()
+		if m.fullTUI && m.termWidth > 0 && m.termHeight > 0 {
+			return ui.PlaceCenter(m.termWidth, m.termHeight, confirmView)
+		}
+		return confirmView
 	}
 
 	if m.quitting {
@@ -287,7 +294,11 @@ func (m timerModel) View() string {
 	inner := firstLine + "\n" + barStr + "\n" + styledHelp
 
 	// 5. Wrap with a border using lipgloss
-	return borderStyle.Render(inner) + "\n"
+	view := borderStyle.Render(inner) + "\n"
+	if m.fullTUI && m.termWidth > 0 && m.termHeight > 0 {
+		return ui.PlaceVertically(m.termWidth, m.termHeight, view)
+	}
+	return view
 }
 
 func formatDuration(d time.Duration) string {
@@ -389,7 +400,9 @@ type doneModel struct {
 	phase     int
 	stopCh    <-chan struct{}
 	fullWidth bool
+	fullTUI   bool
 	termWidth int
+	termHeight int
 }
 
 type doneTickMsg struct{}
@@ -403,6 +416,7 @@ func (d doneModel) Init() tea.Cmd {
 func (d doneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if wmsg, ok := msg.(tea.WindowSizeMsg); ok {
 		d.termWidth = wmsg.Width
+		d.termHeight = wmsg.Height
 	}
 
 	switch msg.(type) {
@@ -475,7 +489,11 @@ func (d doneModel) View() string {
 
 	inner := timesUpLine + "\n" + barStr + "\n" + helpLine
 
-	return borderStyle.Render(inner) + "\n"
+	view := borderStyle.Render(inner) + "\n"
+	if d.fullTUI && d.termWidth > 0 && d.termHeight > 0 {
+		return ui.PlaceVertically(d.termWidth, d.termHeight, view)
+	}
+	return view
 }
 
 var activePlayCmd *exec.Cmd

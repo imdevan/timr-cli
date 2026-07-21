@@ -127,8 +127,9 @@ func newRootCmd() *cobra.Command {
 						lastTmuxSeconds:    -1,
 						rainbowBar:         cfg.Rainbow.Enabled && cfg.RainbowBar.Enabled,
 						fullWidth:          cfg.FullWidth,
+						fullTUI:            cfg.FullTUI,
 					}
-					p := tea.NewProgram(m)
+					p := tea.NewProgram(m, makeProgramOpts(cfg)...)
 					finalModel, pErr = p.Run()
 					if pErr != nil {
 						return pErr
@@ -187,8 +188,8 @@ func newRootCmd() *cobra.Command {
 				}
 
 				// Run the animated done screen.
-				done := doneModel{theme: theme, stopCh: stopChan, fullWidth: cfg.FullWidth}
-				if _, err := tea.NewProgram(done).Run(); err != nil {
+				done := doneModel{theme: theme, stopCh: stopChan, fullWidth: cfg.FullWidth, fullTUI: cfg.FullTUI}
+				if _, err := tea.NewProgram(done, makeProgramOpts(cfg)...).Run(); err != nil {
 					_ = err // best-effort
 				}
 
@@ -232,8 +233,9 @@ func newRootCmd() *cobra.Command {
 					theme:        theme,
 					tickInterval: 100 * time.Millisecond,
 					fullWidth:    cfg.FullWidth,
+					fullTUI:      cfg.FullTUI,
 				}
-				p := tea.NewProgram(m)
+				p := tea.NewProgram(m, makeProgramOpts(cfg)...)
 				if _, err := p.Run(); err != nil {
 					return err
 				}
@@ -397,4 +399,12 @@ func newStopCmd() *cobra.Command {
 		},
 	}
 	return cmd
+}
+
+func makeProgramOpts(cfg domain.Config) []tea.ProgramOption {
+	var opts []tea.ProgramOption
+	if cfg.FullTUI {
+		opts = append(opts, tea.WithAltScreen())
+	}
+	return opts
 }

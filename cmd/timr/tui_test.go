@@ -183,3 +183,36 @@ func TestTimerModelResetHotkey(t *testing.T) {
 		t.Errorf("expected remaining to be reset to 10m, got %v", m.remaining)
 	}
 }
+
+func TestFullTUICentering(t *testing.T) {
+	cfg := domain.DefaultConfig()
+	theme := ui.ThemeFromConfig(cfg)
+
+	m := timerModel{
+		duration:  10 * time.Minute,
+		remaining: 5 * time.Minute,
+		fullWidth: false,
+		fullTUI:   true,
+		theme:     theme,
+	}
+
+	// Send WindowSizeMsg (width 80, height 24)
+	updated, _ := m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
+	m = updated.(timerModel)
+
+	timerView := m.View()
+	lines := strings.Split(timerView, "\n")
+	if len(lines) < 24 {
+		t.Errorf("expected fullTUI timer view height at least 24 lines, got %d", len(lines))
+	}
+
+	// Trigger confirmation mode
+	updated, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+	m = updated.(timerModel)
+
+	confirmView := m.View()
+	confirmLines := strings.Split(confirmView, "\n")
+	if len(confirmLines) < 24 {
+		t.Errorf("expected fullTUI confirm view height at least 24 lines, got %d", len(confirmLines))
+	}
+}

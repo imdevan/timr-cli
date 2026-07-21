@@ -68,6 +68,12 @@ func TestDefaultConfig(t *testing.T) {
 		}
 	})
 
+	t.Run("has full_tui enabled by default", func(t *testing.T) {
+		if !cfg.FullTUI {
+			t.Error("DefaultConfig().FullTUI should be true")
+		}
+	})
+
 	t.Run("has list spacing set", func(t *testing.T) {
 		if cfg.ListSpacing == "" {
 			t.Error("DefaultConfig().ListSpacing should not be empty")
