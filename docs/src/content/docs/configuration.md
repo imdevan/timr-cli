@@ -16,6 +16,7 @@ The following options can be set in your configuration file:
 |--------|------|---------|-------------|
 | `editor` | string | `nvim` | Editor to use for editing bookmarks and config files |
 | `interactive_default` | bool | `false` | Start in interactive mode by default when no arguments are provided |
+| `full_width` | bool | `true` | When true, progress bar and TUI width flex to the full width of the terminal |
 
 ### Display Settings
 
@@ -48,6 +49,7 @@ editor = "nvim"
 
 # CLI behavior
 interactive_default = true
+full_width = true
 
 # UI
 # list_spacing options: compact (title only), tight (title + description, no margin), space (default, with spacing)

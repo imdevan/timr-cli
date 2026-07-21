@@ -125,6 +125,7 @@ func newRootCmd() *cobra.Command {
 						originalTmuxWindow: originalTmux,
 						lastTmuxSeconds:    -1,
 						rainbowBar:         cfg.Rainbow.Enabled && cfg.RainbowBar.Enabled,
+						fullWidth:          cfg.FullWidth,
 					}
 					p := tea.NewProgram(m)
 					finalModel, pErr = p.Run()
@@ -185,7 +186,7 @@ func newRootCmd() *cobra.Command {
 				}
 
 				// Run the animated done screen.
-				done := doneModel{theme: theme, stopCh: stopChan}
+				done := doneModel{theme: theme, stopCh: stopChan, fullWidth: cfg.FullWidth}
 				if _, err := tea.NewProgram(done).Run(); err != nil {
 					_ = err // best-effort
 				}
@@ -229,6 +230,7 @@ func newRootCmd() *cobra.Command {
 					isMonitor:    true,
 					theme:        theme,
 					tickInterval: 100 * time.Millisecond,
+					fullWidth:    cfg.FullWidth,
 				}
 				p := tea.NewProgram(m)
 				if _, err := p.Run(); err != nil {

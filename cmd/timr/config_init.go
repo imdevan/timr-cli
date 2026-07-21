@@ -76,6 +76,7 @@ func renderConfigTemplate(cfg domain.Config) string {
 	builder.WriteString(fmt.Sprintf("# interactive_default = %t\n", cfg.InteractiveDefault))
 	builder.WriteString(fmt.Sprintf("# update_tmux_window = %t\n", cfg.UpdateTmuxWindow))
 	builder.WriteString(fmt.Sprintf("# tmux_progress_bar = %t\n", cfg.TmuxProgressBar))
+	builder.WriteString(fmt.Sprintf("# full_width = %t\n", cfg.FullWidth))
 	builder.WriteString("# rainbow = true  # true, false, or array of custom color strings (e.g. [\"#f5bde6\", \"#c6a0f6\"])\n")
 	builder.WriteString("\n# UI\n")
 	builder.WriteString("# list_spacing options: compact (title only), tight (title + description, no margin), space (default, with spacing)\n")

@@ -26,6 +26,7 @@ type Config struct {
 	HelpText           string        `toml:"help_text"`
 	UpdateTmuxWindow   bool          `toml:"update_tmux_window"`
 	TmuxProgressBar    bool          `toml:"tmux_progress_bar"`
+	FullWidth          bool          `toml:"full_width"`
 	Rainbow            RainbowOption `toml:"rainbow"`
 	RainbowBar         RainbowOption `toml:"rainbow_bar"`
 }
@@ -50,6 +51,7 @@ func DefaultConfig() Config {
 		HelpText:           "08",
 		UpdateTmuxWindow:   false,
 		TmuxProgressBar:    true,
+		FullWidth:          true,
 		Rainbow:            defaultRainbow,
 		RainbowBar:         defaultRainbow,
 	}

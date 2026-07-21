@@ -364,6 +364,36 @@ func TestManagerBooleanOverrides(t *testing.T) {
 	}
 }
 
+func TestManagerLoadsFullWidth(t *testing.T) {
+	root := t.TempDir()
+	cwd := filepath.Join(root, "project")
+	if err := os.MkdirAll(cwd, 0o755); err != nil {
+		t.Fatalf("mkdir cwd: %v", err)
+	}
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
+
+	configPath := utils.ConfigPathGlobal()
+	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
+		t.Fatalf("mkdir config dir: %v", err)
+	}
+
+	data := []byte("full_width = false\n")
+	if err := os.WriteFile(configPath, data, 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+
+	manager := NewManager(cwd)
+	cfg, err := manager.Load()
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+
+	if cfg.FullWidth {
+		t.Error("expected full_width to be false from config")
+	}
+}
+
+
 func TestManagerLoadsRainbowOption(t *testing.T) {
 	t.Run("loads rainbow = false", func(t *testing.T) {
 		root := t.TempDir()

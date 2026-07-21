@@ -35,6 +35,8 @@ type timerModel struct {
 	originalTmuxWindow string
 	lastTmuxSeconds    int
 	rainbowBar         bool
+	fullWidth          bool
+	termWidth          int
 }
 
 func (m timerModel) Init() tea.Cmd {
@@ -50,6 +52,10 @@ func tick(d time.Duration) tea.Cmd {
 }
 
 func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if wmsg, ok := msg.(tea.WindowSizeMsg); ok {
+		m.termWidth = wmsg.Width
+	}
+
 	if m.confirmMode && m.confirmModel != nil {
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
@@ -173,6 +179,25 @@ func (m timerModel) View() string {
 		return ""
 	}
 
+	width := 40
+	borderStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(m.theme.Border).
+		Padding(1, 2)
+
+	if m.fullWidth && m.termWidth > 0 {
+		innerWidth := m.termWidth - 6
+		if innerWidth < 1 {
+			innerWidth = 1
+		}
+		width = innerWidth
+		boxWidth := m.termWidth - 2
+		if boxWidth < 1 {
+			boxWidth = 1
+		}
+		borderStyle = borderStyle.Width(boxWidth)
+	}
+
 	// 1. Build the first line: remaining time on left, total duration on right
 	remStr := formatDuration(m.remaining)
 	if m.paused {
@@ -181,7 +206,7 @@ func (m timerModel) View() string {
 	totStr := formatDuration(m.duration)
 
 	visibleLen := len(remStr) + len(totStr)
-	spaceCount := 40 - visibleLen
+	spaceCount := width - visibleLen
 	if spaceCount < 1 {
 		spaceCount = 1
 	}
@@ -191,8 +216,7 @@ func (m timerModel) View() string {
 	styledTot := lipgloss.NewStyle().Foreground(m.theme.TimeStart).Render(totStr)
 	firstLine := styledRem + spaces + styledTot
 
-	// 2. Build the progress bar (width 40)
-	width := 40
+	// 2. Build the progress bar
 	pct := float64(m.remaining) / float64(m.duration)
 	if pct > 1.0 {
 		pct = 1.0
@@ -226,11 +250,6 @@ func (m timerModel) View() string {
 	inner := firstLine + "\n" + barStr + "\n" + styledHelp
 
 	// 5. Wrap with a border using lipgloss
-	borderStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(m.theme.Border).
-		Padding(1, 2)
-
 	return borderStyle.Render(inner) + "\n"
 }
 
@@ -329,9 +348,11 @@ func generateCircularGradient(anchors []lipgloss.Color) []lipgloss.Color {
 // completes. It animates an oscillating rainbow bar inside the themed border
 // while the alarm is playing, and exits on any keypress.
 type doneModel struct {
-	theme  ui.Theme
-	phase  int
-	stopCh <-chan struct{}
+	theme     ui.Theme
+	phase     int
+	stopCh    <-chan struct{}
+	fullWidth bool
+	termWidth int
 }
 
 type doneTickMsg struct{}
@@ -343,6 +364,10 @@ func (d doneModel) Init() tea.Cmd {
 }
 
 func (d doneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if wmsg, ok := msg.(tea.WindowSizeMsg); ok {
+		d.termWidth = wmsg.Width
+	}
+
 	switch msg.(type) {
 	case tea.KeyMsg:
 		return d, tea.Quit
@@ -362,7 +387,25 @@ func (d doneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (d doneModel) View() string {
-	const width = 40
+	width := 40
+	borderStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(d.theme.Border).
+		Padding(0, 1)
+
+	if d.fullWidth && d.termWidth > 0 {
+		innerWidth := d.termWidth - 4
+		if innerWidth < 1 {
+			innerWidth = 1
+		}
+		width = innerWidth
+		boxWidth := d.termWidth - 2
+		if boxWidth < 1 {
+			boxWidth = 1
+		}
+		borderStyle = borderStyle.Width(boxWidth)
+	}
+
 	timesUpLine := lipgloss.NewStyle().
 		Foreground(d.theme.TimeRemaining).
 		Bold(true).
@@ -394,11 +437,6 @@ func (d doneModel) View() string {
 		Render("Playing alarm... [Press any key to stop]")
 
 	inner := timesUpLine + "\n" + barStr + "\n" + helpLine
-
-	borderStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(d.theme.Border).
-		Padding(0, 1)
 
 	return borderStyle.Render(inner) + "\n"
 }

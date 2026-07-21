@@ -9,6 +9,7 @@ default_units = "minutes"
 interactive_default = true
 update_tmux_window = false
 tmux_progress_bar = true
+full_width = true
 # rainbow = true  # true, false, or array of custom colors: ["#f5bde6", "#c6a0f6", "#ed8796"]
 
 # UI

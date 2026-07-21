@@ -60,6 +60,12 @@ func TestDefaultConfig(t *testing.T) {
 		}
 	})
 
+	t.Run("has full width enabled by default", func(t *testing.T) {
+		if !cfg.FullWidth {
+			t.Error("DefaultConfig().FullWidth should be true")
+		}
+	})
+
 	t.Run("has list spacing set", func(t *testing.T) {
 		if cfg.ListSpacing == "" {
 			t.Error("DefaultConfig().ListSpacing should not be empty")
