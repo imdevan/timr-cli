@@ -75,9 +75,9 @@ func TestTimerModelFixedWidth(t *testing.T) {
 
 	view := m.View()
 	w := maxLineWidth(view)
-	// 40 inner width + 6 border & padding = 46
-	if w != 46 {
-		t.Errorf("expected rendered width 46 when fullWidth=false, got %d", w)
+	// 49 inner help text width + 6 border & padding = 55
+	if w != 55 {
+		t.Errorf("expected rendered width 55 when fullWidth=false, got %d", w)
 	}
 }
 
@@ -147,5 +147,39 @@ func TestBarFgColorForTime(t *testing.T) {
 		if got != tt.wantColor {
 			t.Errorf("BarFgColorForTime(%v, %v) = %v, want %v", tt.remaining, duration, got, tt.wantColor)
 		}
+	}
+}
+
+func TestTimerModelResetHotkey(t *testing.T) {
+	cfg := domain.DefaultConfig()
+	theme := ui.ThemeFromConfig(cfg)
+
+	m := timerModel{
+		duration:  10 * time.Minute,
+		remaining: 3 * time.Minute,
+		fullWidth: false,
+		theme:     theme,
+	}
+
+	// Pressing 'r' triggers confirmation
+	updated, _ := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'r'}})
+	m = updated.(timerModel)
+
+	if !m.confirmMode {
+		t.Fatal("expected confirmMode to be true after pressing 'r'")
+	}
+	if m.confirmAction != confirmActionReset {
+		t.Fatalf("expected confirmAction to be confirmActionReset, got %v", m.confirmAction)
+	}
+
+	// Confirming with 'y' resets remaining to duration
+	updated, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'y'}})
+	m = updated.(timerModel)
+
+	if m.confirmMode {
+		t.Error("expected confirmMode to be false after confirming reset")
+	}
+	if m.remaining != 10*time.Minute {
+		t.Errorf("expected remaining to be reset to 10m, got %v", m.remaining)
 	}
 }

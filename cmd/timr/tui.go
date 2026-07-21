@@ -17,6 +17,13 @@ import (
 	"github.com/timr/internal/ui"
 )
 
+type confirmActionType int
+
+const (
+	confirmActionCancel confirmActionType = iota
+	confirmActionReset
+)
+
 type timerModel struct {
 	duration           time.Duration
 	remaining          time.Duration
@@ -30,6 +37,7 @@ type timerModel struct {
 	alarmSound         string
 	tickInterval       time.Duration
 	confirmMode        bool
+	confirmAction      confirmActionType
 	confirmModel       *ui.ConfirmationModel
 	updateTmux         bool
 	tmuxProgressBar    bool
@@ -68,19 +76,32 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if _, isQuit := cmd().(tea.QuitMsg); isQuit {
 						confirmed := m.confirmModel.ChoiceValue()
 						m.confirmMode = false
-						if confirmed {
-							m.quitting = true
-							m.cancelled = true
-							if m.updateTmux && m.originalTmuxWindow != "" {
-								setTmuxWindowName(m.originalTmuxWindow)
-							}
-							return m, tea.Quit
-						} else {
-							m.lastTickTime = time.Now()
-							if m.updateTmux && os.Getenv("TMUX") != "" {
-								setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar, m.tmuxInverted))
+						if m.confirmAction == confirmActionReset {
+							if confirmed {
+								m.remaining = m.duration
+								m.lastTickTime = time.Now()
+								if m.updateTmux && os.Getenv("TMUX") != "" {
+									setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar, m.tmuxInverted))
+								}
+							} else {
+								m.lastTickTime = time.Now()
 							}
 							return m, tick(m.tickInterval)
+						} else {
+							if confirmed {
+								m.quitting = true
+								m.cancelled = true
+								if m.updateTmux && m.originalTmuxWindow != "" {
+									setTmuxWindowName(m.originalTmuxWindow)
+								}
+								return m, tea.Quit
+							} else {
+								m.lastTickTime = time.Now()
+								if m.updateTmux && os.Getenv("TMUX") != "" {
+									setTmuxWindowName(timeremaining.Format(m.remaining, m.duration, m.paused, m.tmuxProgressBar, m.tmuxInverted))
+								}
+								return m, tick(m.tickInterval)
+							}
 						}
 					}
 				}
@@ -101,6 +122,7 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				)
 				m.confirmModel = &confirmModel
 				m.confirmMode = true
+				m.confirmAction = confirmActionCancel
 				return m, confirmModel.Init()
 			}
 			m.quitting = true
@@ -109,6 +131,18 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				setTmuxWindowName(m.originalTmuxWindow)
 			}
 			return m, tea.Quit
+		case "r":
+			if !m.isMonitor {
+				confirmModel := ui.NewConfirmationModel(
+					"Reset Timer",
+					"Are you sure you want to reset the timer?",
+					m.theme,
+				)
+				m.confirmModel = &confirmModel
+				m.confirmMode = true
+				m.confirmAction = confirmActionReset
+				return m, confirmModel.Init()
+			}
 		case " ":
 			if !m.isMonitor {
 				if m.paused {
@@ -245,7 +279,7 @@ func (m timerModel) View() string {
 	if m.isMonitor {
 		helpStr = "[q/Esc] exit monitoring"
 	} else {
-		helpStr = "[Space] pause/resume • [q/Esc] cancel"
+		helpStr = "[Space] pause/resume • [r] reset • [q/Esc] cancel"
 	}
 	styledHelp := lipgloss.NewStyle().Foreground(m.theme.HelpText).Render(helpStr)
 
