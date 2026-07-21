@@ -459,6 +459,27 @@ func TestManagerLoadsPomodoro(t *testing.T) {
 	}
 }
 
+func TestManagerLoadsVertical(t *testing.T) {
+	root := t.TempDir()
+	cwd := filepath.Join(root, "project")
+	_ = os.MkdirAll(cwd, 0o755)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
+
+	configPath := utils.ConfigPathGlobal()
+	_ = os.MkdirAll(filepath.Dir(configPath), 0o755)
+	_ = os.WriteFile(configPath, []byte("vertical = true\n"), 0o644)
+
+	manager := NewManager(cwd)
+	cfg, err := manager.Load()
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+
+	if !cfg.Vertical {
+		t.Error("expected vertical to be true when configured")
+	}
+}
+
 
 func TestManagerLoadsRainbowOption(t *testing.T) {
 	t.Run("loads rainbow = false", func(t *testing.T) {

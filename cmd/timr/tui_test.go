@@ -216,3 +216,27 @@ func TestFullTUICentering(t *testing.T) {
 		t.Errorf("expected fullTUI confirm view height at least 24 lines, got %d", len(confirmLines))
 	}
 }
+
+func TestVerticalTimerRendering(t *testing.T) {
+	cfg := domain.DefaultConfig()
+	theme := ui.ThemeFromConfig(cfg)
+
+	m := timerModel{
+		duration:         10 * time.Minute,
+		remaining:        5 * time.Minute,
+		vertical:         true,
+		pomodoroProgress: "[1/6]",
+		theme:            theme,
+	}
+
+	view := m.View()
+	if !strings.Contains(view, "[1/6]") {
+		t.Error("expected vertical timer view to contain pomodoro progress '[1/6]'")
+	}
+	if !strings.Contains(view, "5:00") {
+		t.Error("expected vertical timer view to contain remaining time '5:00'")
+	}
+	if !strings.Contains(view, "10:00") {
+		t.Error("expected vertical timer view to contain total duration '10:00'")
+	}
+}

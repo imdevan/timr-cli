@@ -102,6 +102,8 @@ type partialConfig struct {
 	TmuxInverted         *bool `toml:"tmux_inverted"`
 	FullWidth            *bool `toml:"full_width"`
 	FullTUI              *bool `toml:"full_tui"`
+	Vertical             *bool `toml:"vertical"`
+	VerticalWidth        *int  `toml:"vertical_width"`
 	Pomodoro             any   `toml:"pomodoro"`
 	PomodoroMessages     any   `toml:"pomodoro_messages"`
 	Rainbow              any   `toml:"rainbow"`
@@ -174,6 +176,12 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.FullTUI != nil {
 		config.FullTUI = *partial.FullTUI
+	}
+	if partial.Vertical != nil {
+		config.Vertical = *partial.Vertical
+	}
+	if partial.VerticalWidth != nil && *partial.VerticalWidth > 0 {
+		config.VerticalWidth = *partial.VerticalWidth
 	}
 	if partial.Pomodoro != nil {
 		config.Pomodoro = parsePomodoro(partial.Pomodoro)

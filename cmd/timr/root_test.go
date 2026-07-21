@@ -10,8 +10,19 @@ func TestRootCommandHasVersion(t *testing.T) {
 	if versionFlag == nil {
 		t.Fatal("expected --version flag to be registered")
 	}
-	if versionFlag.Shorthand != "v" {
-		t.Fatalf("expected shorthand -v, got %q", versionFlag.Shorthand)
+	if versionFlag.Shorthand != "V" {
+		t.Fatalf("expected shorthand -V, got %q", versionFlag.Shorthand)
+	}
+}
+
+func TestRootCommandHasVertical(t *testing.T) {
+	cmd := newRootCmd()
+	verticalFlag := cmd.Flag("vertical")
+	if verticalFlag == nil {
+		t.Fatal("expected --vertical flag to be registered")
+	}
+	if verticalFlag.Shorthand != "v" {
+		t.Fatalf("expected shorthand -v, got %q", verticalFlag.Shorthand)
 	}
 }
 

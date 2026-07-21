@@ -34,6 +34,7 @@ type rootOptions struct {
 	showVersion bool
 	interactive bool
 	detached    bool
+	vertical    bool
 }
 
 var rootCmd = newRootCmd()
@@ -147,9 +148,10 @@ func newRootCmd() *cobra.Command {
 	}
 
 	cmd.PersistentFlags().StringVarP(&opts.configPath, "config", "c", "", "config file path")
-	cmd.Flags().BoolVarP(&opts.showVersion, "version", "v", false, "print version information")
+	cmd.Flags().BoolVarP(&opts.showVersion, "version", "V", false, "print version information")
 	cmd.PersistentFlags().BoolVarP(&opts.interactive, "interactive", "i", false, "show live countdown timer TUI")
 	cmd.PersistentFlags().BoolVarP(&opts.detached, "detached", "d", false, "run timer in background")
+	cmd.PersistentFlags().BoolVarP(&opts.vertical, "vertical", "v", false, "render progress bar vertically")
 
 	cmd.AddCommand(newConfigCmd())
 	cmd.AddCommand(newCompletionCmd())
@@ -316,6 +318,10 @@ func runSingleTimer(cmd *cobra.Command, cfg domain.Config, theme ui.Theme, durat
 		isInteractive = opts.interactive
 	}
 
+	if cmd.Flags().Changed("vertical") || cmd.PersistentFlags().Changed("vertical") {
+		cfg.Vertical = opts.vertical
+	}
+
 	// Retrieve tmux window name if needed
 	var originalTmux string
 	if cfg.UpdateTmuxWindow && os.Getenv("TMUX") != "" {
@@ -343,6 +349,8 @@ func runSingleTimer(cmd *cobra.Command, cfg domain.Config, theme ui.Theme, durat
 			rainbowBar:         cfg.Rainbow.Enabled && cfg.RainbowBar.Enabled,
 			fullWidth:          cfg.FullWidth,
 			fullTUI:            cfg.FullTUI,
+			vertical:           cfg.Vertical,
+			verticalWidth:      cfg.VerticalWidth,
 			pomodoroProgress:   pomodoroProgress,
 		}
 		p := tea.NewProgram(m, makeProgramOpts(cfg)...)
@@ -403,7 +411,7 @@ func runSingleTimer(cmd *cobra.Command, cfg domain.Config, theme ui.Theme, durat
 	}
 
 	// Run the animated done screen.
-	done := doneModel{theme: theme, stopCh: stopChan, fullWidth: cfg.FullWidth, fullTUI: cfg.FullTUI}
+	done := doneModel{theme: theme, stopCh: stopChan, fullWidth: cfg.FullWidth, fullTUI: cfg.FullTUI, vertical: cfg.Vertical, verticalWidth: cfg.VerticalWidth}
 	if _, err := tea.NewProgram(done, makeProgramOpts(cfg)...).Run(); err != nil {
 		_ = err
 	}

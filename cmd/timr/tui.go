@@ -45,8 +45,11 @@ type timerModel struct {
 	originalTmuxWindow string
 	lastTmuxSeconds    int
 	rainbowBar         bool
+	phase              int
 	fullWidth          bool
 	fullTUI            bool
+	vertical           bool
+	verticalWidth      int
 	pomodoroProgress   string
 	termWidth          int
 	termHeight         int
@@ -168,6 +171,7 @@ func (m timerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.quitting {
 			return m, nil
 		}
+		m.phase++
 
 		now := time.Now()
 		if m.isMonitor {
@@ -240,6 +244,132 @@ func (m timerModel) View() string {
 			boxWidth = 1
 		}
 		borderStyle = borderStyle.Width(boxWidth)
+	}
+
+	if m.vertical {
+		remStr := formatDuration(m.remaining)
+		if m.paused {
+			remStr = remStr + " [PAUSED]"
+		}
+		totStr := formatDuration(m.duration)
+
+		pct := float64(m.remaining) / float64(m.duration)
+		if pct > 1.0 {
+			pct = 1.0
+		} else if pct < 0.0 {
+			pct = 0.0
+		}
+
+		barHeight := 8
+		if m.fullTUI && m.termHeight > 0 {
+			// Overhead: border (2) + padding (2) + help gap (2) + help (1) + trailing newline (1) = 8
+			availHeight := m.termHeight - 8
+			if availHeight > 3 {
+				barHeight = availHeight
+			}
+		}
+
+		vWidth := m.verticalWidth
+		if vWidth < 1 {
+			vWidth = 3
+		}
+
+		filledCount := int(pct * float64(barHeight))
+		if filledCount < 0 {
+			filledCount = 0
+		} else if filledCount > barHeight {
+			filledCount = barHeight
+		}
+		emptyCount := barHeight - filledCount
+
+		bgStyle := lipgloss.NewStyle().Foreground(m.theme.BarBg)
+
+		filledBlock := strings.Repeat("█", vWidth)
+		emptyBlock := strings.Repeat("░", vWidth)
+
+		var barLines []string
+		// Empty rows on top, filled rows on bottom (bar fills upward)
+		for i := 0; i < emptyCount; i++ {
+			barLines = append(barLines, bgStyle.Render(emptyBlock))
+		}
+		barFgColor := BarFgColorForTime(m.remaining, m.duration, m.theme.BarFgColors)
+		fgStyle := lipgloss.NewStyle().Foreground(barFgColor)
+		for i := 0; i < filledCount; i++ {
+			barLines = append(barLines, fgStyle.Render(filledBlock))
+		}
+		barVertical := strings.Join(barLines, "\n")
+
+		styledTot := lipgloss.NewStyle().Foreground(m.theme.TimeStart).Render(totStr)
+		styledRem := lipgloss.NewStyle().Foreground(m.theme.TimeRemaining).Bold(true).Render(remStr)
+		var styledPom string
+		leftWidth := lipgloss.Width(styledTot)
+		if remW := lipgloss.Width(styledRem); remW > leftWidth {
+			leftWidth = remW
+		}
+		if m.pomodoroProgress != "" {
+			styledPom = lipgloss.NewStyle().Foreground(m.theme.TimeRemaining).Bold(true).Render(m.pomodoroProgress)
+			if pomW := lipgloss.Width(styledPom); pomW > leftWidth {
+				leftWidth = pomW
+			}
+		}
+
+		centerStyle := lipgloss.NewStyle().Width(leftWidth).Align(lipgloss.Center)
+		styledTot = centerStyle.Render(styledTot)
+		styledRem = centerStyle.Render(styledRem)
+		if m.pomodoroProgress != "" {
+			styledPom = centerStyle.Render(styledPom)
+		}
+
+		var leftContent string
+		if m.pomodoroProgress != "" {
+			bottomText := styledPom + "\n" + styledRem
+			topPadCount := barHeight - 3
+			if topPadCount < 1 {
+				topPadCount = 1
+			}
+			leftContent = styledTot + strings.Repeat("\n", topPadCount) + bottomText
+		} else {
+			topPadCount := barHeight - 2
+			if topPadCount < 1 {
+				topPadCount = 1
+			}
+			leftContent = styledTot + strings.Repeat("\n", topPadCount) + styledRem
+		}
+
+		barCentered := lipgloss.NewStyle().Align(lipgloss.Center).Render(barVertical)
+		mainBlock := lipgloss.JoinHorizontal(lipgloss.Top, leftContent, "    ", barCentered)
+
+		var helpStr string
+		if m.isMonitor {
+			helpStr = "[q/Esc] exit monitoring"
+		} else {
+			helpStr = "[Space] pause/resume • [r] reset • [q/Esc] cancel"
+		}
+		styledHelp := lipgloss.NewStyle().Foreground(m.theme.HelpText).Render(helpStr)
+
+		// Set border width so content can be centered horizontally
+		if m.termWidth > 0 {
+			boxWidth := m.termWidth - 2
+			if boxWidth < 1 {
+				boxWidth = 1
+			}
+			borderStyle = borderStyle.Width(boxWidth)
+		}
+
+		innerWidth := lipgloss.Width(borderStyle.Render(""))
+		if innerWidth < 1 {
+			innerWidth = lipgloss.Width(mainBlock)
+		}
+		mainBlockCentered := lipgloss.NewStyle().Width(innerWidth).Align(lipgloss.Center).Render(mainBlock)
+		styledHelpCentered := lipgloss.NewStyle().Width(innerWidth).Align(lipgloss.Center).Render(styledHelp)
+
+		inner := mainBlockCentered + "\n\n" + styledHelpCentered
+
+		view := borderStyle.Render(inner) + "\n"
+		if m.fullTUI && m.termWidth > 0 && m.termHeight > 0 {
+			return ui.PlaceCenter(m.termWidth, m.termHeight, view)
+		}
+		return view
 	}
 
 	// 1. Build the first line: remaining time on left, total duration on right
@@ -400,13 +530,15 @@ func generateCircularGradient(anchors []lipgloss.Color) []lipgloss.Color {
 // completes. It animates an oscillating rainbow bar inside the themed border
 // while the alarm is playing, and exits on any keypress.
 type doneModel struct {
-	theme     ui.Theme
-	phase     int
-	stopCh    <-chan struct{}
-	fullWidth bool
-	fullTUI   bool
-	termWidth int
-	termHeight int
+	theme         ui.Theme
+	phase         int
+	stopCh        <-chan struct{}
+	fullWidth     bool
+	fullTUI       bool
+	vertical      bool
+	verticalWidth int
+	termWidth     int
+	termHeight    int
 }
 
 type doneTickMsg struct{}
@@ -459,6 +591,90 @@ func (d doneModel) View() string {
 			boxWidth = 1
 		}
 		borderStyle = borderStyle.Width(boxWidth)
+	}
+
+	if d.vertical {
+		timesUpLine := lipgloss.NewStyle().
+			Foreground(d.theme.TimeRemaining).
+			Bold(true).
+			Render("⏰ Time's up!")
+
+		helpLine := lipgloss.NewStyle().
+			Foreground(d.theme.HelpText).
+			Render("Playing alarm... [Press any key to stop]")
+
+		barHeight := 8
+		if d.fullTUI && d.termHeight > 0 {
+			// Overhead: border (2) + help gap (2) + help (1) + trailing newline (1) = 6
+			availHeight := d.termHeight - 6
+			if availHeight > 3 {
+				barHeight = availHeight
+			}
+		}
+
+		vWidth := d.verticalWidth
+		if vWidth < 1 {
+			vWidth = 3
+		}
+
+		filledBlock := strings.Repeat("█", vWidth)
+		emptyBlock := strings.Repeat(" ", vWidth)
+
+		var barLines []string
+		if d.theme.RainbowBar {
+			anchors := d.theme.RainbowColors
+			if len(anchors) == 0 {
+				anchors = defaultRainbowAnchors
+			}
+			colors := generateCircularGradient(anchors)
+			n := len(colors)
+			// Rainbow fills vertically from bottom to top
+			for i := 0; i < barHeight; i++ {
+				// Map from bottom: row 0 (top) = barHeight-1, last row = 0
+				bottomIdx := barHeight - 1 - i
+				colorIdx := ((bottomIdx / 2) + d.phase) % n
+				barLines = append(barLines, lipgloss.NewStyle().Foreground(colors[colorIdx]).Render(filledBlock))
+			}
+		} else {
+			bgStyle := lipgloss.NewStyle().Foreground(d.theme.BarBg)
+			for i := 0; i < barHeight; i++ {
+				barLines = append(barLines, bgStyle.Render(emptyBlock))
+			}
+		}
+		barVertical := strings.Join(barLines, "\n")
+
+		leftContent := timesUpLine
+		topPadCount := barHeight - 2
+		if topPadCount < 1 {
+			topPadCount = 1
+		}
+		leftContent = timesUpLine + strings.Repeat("\n", topPadCount)
+
+		mainBlock := lipgloss.JoinHorizontal(lipgloss.Top, leftContent, "    ", barVertical)
+
+		// Set border width so content can be centered horizontally
+		if d.termWidth > 0 {
+			boxWidth := d.termWidth - 2
+			if boxWidth < 1 {
+				boxWidth = 1
+			}
+			borderStyle = borderStyle.Width(boxWidth)
+		}
+
+		innerWidth := lipgloss.Width(borderStyle.Render(""))
+		if innerWidth < 1 {
+			innerWidth = lipgloss.Width(mainBlock)
+		}
+		mainBlockCentered := lipgloss.NewStyle().Width(innerWidth).Align(lipgloss.Center).Render(mainBlock)
+		helpCentered := lipgloss.NewStyle().Width(innerWidth).Align(lipgloss.Center).Render(helpLine)
+
+		inner := mainBlockCentered + "\n\n" + helpCentered
+
+		view := borderStyle.Render(inner) + "\n"
+		if d.fullTUI && d.termWidth > 0 && d.termHeight > 0 {
+			return ui.PlaceCenter(d.termWidth, d.termHeight, view)
+		}
+		return view
 	}
 
 	timesUpLine := lipgloss.NewStyle().

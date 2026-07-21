@@ -57,6 +57,9 @@ func TestDefaultConfig(t *testing.T) {
 		if len(cfg.Pomodoro) != 6 || cfg.Pomodoro[0] != 25 || cfg.Pomodoro[1] != 5 || cfg.Pomodoro[5] != 20 {
 			t.Errorf("DefaultConfig().Pomodoro = %v, want %v", cfg.Pomodoro, []int{25, 5, 25, 5, 25, 20})
 		}
+		if cfg.Vertical {
+			t.Error("DefaultConfig().Vertical should be false")
+		}
 		if cfg.Border != "08" {
 			t.Errorf("DefaultConfig().Border = %q, want %q", cfg.Border, "08")
 		}

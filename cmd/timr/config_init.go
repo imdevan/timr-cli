@@ -95,6 +95,7 @@ func renderConfigTemplate(cfg domain.Config) string {
 	builder.WriteString(fmt.Sprintf("# tmux_inverted = %t\n", cfg.TmuxInverted))
 	builder.WriteString(fmt.Sprintf("# full_width = %t\n", cfg.FullWidth))
 	builder.WriteString(fmt.Sprintf("# full_tui = %t\n", cfg.FullTUI))
+	builder.WriteString(fmt.Sprintf("# vertical = %t\n", cfg.Vertical))
 	builder.WriteString("# rainbow = true  # true, false, or array of custom color strings (e.g. [\"#f5bde6\", \"#c6a0f6\"])\n")
 	builder.WriteString("\n# UI\n")
 	builder.WriteString("# list_spacing options: compact (title only), tight (title + description, no margin), space (default, with spacing)\n")
