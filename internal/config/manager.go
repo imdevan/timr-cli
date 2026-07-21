@@ -94,7 +94,7 @@ type partialConfig struct {
 	TimeRemaining        *string `toml:"time_remaining"`
 	TimeStart            *string `toml:"time_start"`
 	BarBg                *string `toml:"bar_bg"`
-	BarFg                *string `toml:"bar_fg"`
+	BarFg                any     `toml:"bar_fg"`
 	HelpText             *string `toml:"help_text"`
 	UpdateTmuxWindow     *bool `toml:"update_tmux_window"`
 	TmuxProgressBar      *bool `toml:"tmux_progress_bar"`
@@ -148,7 +148,7 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 		config.BarBg = *partial.BarBg
 	}
 	if partial.BarFg != nil {
-		config.BarFg = *partial.BarFg
+		config.BarFg = parseBarFg(partial.BarFg)
 	}
 	if partial.HelpText != nil {
 		config.HelpText = *partial.HelpText
@@ -193,6 +193,40 @@ func parseRainbowOption(val any) domain.RainbowOption {
 		return domain.RainbowOption{Enabled: true, Colors: v}
 	}
 	return domain.RainbowOption{Enabled: true}
+}
+
+func parseBarFg(val any) []string {
+	var colors []string
+	switch v := val.(type) {
+	case string:
+		v = strings.TrimSpace(v)
+		if v != "" {
+			colors = append(colors, v)
+		}
+	case []any:
+		for _, item := range v {
+			if s, ok := item.(string); ok {
+				s = strings.TrimSpace(s)
+				if s != "" {
+					colors = append(colors, s)
+				}
+			}
+		}
+	case []string:
+		for _, s := range v {
+			s = strings.TrimSpace(s)
+			if s != "" {
+				colors = append(colors, s)
+			}
+		}
+	}
+	if len(colors) > 10 {
+		colors = colors[:10]
+	}
+	if len(colors) == 0 {
+		return domain.DefaultConfig().BarFg
+	}
+	return colors
 }
 
 func expandPath(value string) string {

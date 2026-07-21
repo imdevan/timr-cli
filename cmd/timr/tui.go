@@ -12,6 +12,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/timr/internal/adapters/tmux"
+	"github.com/timr/internal/domain"
 	timeremaining "github.com/timr/internal/time_remaining"
 	"github.com/timr/internal/ui"
 )
@@ -235,7 +236,8 @@ func (m timerModel) View() string {
 	filledBar := strings.Repeat("█", filledLen)
 	emptyBar := strings.Repeat("░", emptyLen)
 
-	barStr := lipgloss.NewStyle().Foreground(m.theme.BarFg).Render(filledBar) +
+	barFgColor := BarFgColorForTime(m.remaining, m.duration, m.theme.BarFgColors)
+	barStr := lipgloss.NewStyle().Foreground(barFgColor).Render(filledBar) +
 		lipgloss.NewStyle().Foreground(m.theme.BarBg).Render(emptyBar)
 
 	// 3. Build help / controls
@@ -514,4 +516,28 @@ func getTmuxWindowName() (string, error) {
 
 func setTmuxWindowName(name string) {
 	_ = tmuxAdapter.RenameWindow(name)
+}
+
+func BarFgColorForTime(remaining, duration time.Duration, colors []lipgloss.Color) lipgloss.Color {
+	if len(colors) == 0 {
+		return lipgloss.Color(domain.DefaultConfig().BarFg[0])
+	}
+	if len(colors) == 1 || duration <= 0 {
+		return colors[0]
+	}
+	pct := float64(remaining) / float64(duration)
+	if pct > 1.0 {
+		pct = 1.0
+	} else if pct < 0.0 {
+		pct = 0.0
+	}
+	n := float64(len(colors))
+	elapsed := 1.0 - pct
+	idx := int(elapsed * n)
+	if idx >= len(colors) {
+		idx = len(colors) - 1
+	} else if idx < 0 {
+		idx = 0
+	}
+	return colors[idx]
 }

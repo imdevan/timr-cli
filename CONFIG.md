@@ -35,7 +35,7 @@ Colors support named, numeric, or hex values (e.g., `7`, `13`, `"#ff8800"`).
 | `time_remaining` | string | `14` | Remaining time color |
 | `time_start` | string | `07` | Total/start duration color |
 | `bar_bg` | string | `08` | Background part of progress bar |
-| `bar_fg` | string | `02` | Foreground/filled part of progress bar |
+| `bar_fg` | string or []string | `["02", "03", "01"]` | Foreground/filled part of progress bar (single color or array up to 10 colors for time subdivisions) |
 | `help_text` | string | `08` | Key controls help text color |
 | `border` | string | `08` | Border color |
 
@@ -72,7 +72,7 @@ list_spacing = "space"
 time_remaining = "14"
 time_start = "07"
 bar_bg = "08"
-bar_fg = "02"
+bar_fg = ["02", "03", "01"]
 help_text = "08"
 border = "08"
 ```

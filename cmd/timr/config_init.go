@@ -86,8 +86,17 @@ func renderConfigTemplate(cfg domain.Config) string {
 	builder.WriteString("# Colors support named, numeric, or hex values (ex: 7, 13, \"#ff8800\").\n")
 	builder.WriteString(fmt.Sprintf("# time_remaining = %q\n", cfg.TimeRemaining))
 	builder.WriteString(fmt.Sprintf("# time_start = %q\n", cfg.TimeStart))
-	builder.WriteString(fmt.Sprintf("# bar_bg = %q\n", cfg.BarBg))
-	builder.WriteString(fmt.Sprintf("# bar_fg = %q\n", cfg.BarFg))
+	var barFgStr string
+	if len(cfg.BarFg) == 1 {
+		barFgStr = fmt.Sprintf("%q", cfg.BarFg[0])
+	} else {
+		var items []string
+		for _, c := range cfg.BarFg {
+			items = append(items, fmt.Sprintf("%q", c))
+		}
+		barFgStr = fmt.Sprintf("[%s]", strings.Join(items, ", "))
+	}
+	builder.WriteString(fmt.Sprintf("# bar_fg = %s  # single color or array of colors (up to 10) for progress bar subdivisions\n", barFgStr))
 	builder.WriteString(fmt.Sprintf("# help_text = %q\n", cfg.HelpText))
 	builder.WriteString(fmt.Sprintf("# border = %q\n", cfg.Border))
 	return builder.String()

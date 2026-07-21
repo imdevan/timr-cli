@@ -22,6 +22,6 @@ list_spacing = "space"
 time_remaining = "14"
 time_start = "07"
 bar_bg = "08"
-bar_fg = "02"
+bar_fg = ["02", "03", "01"]  # single color or array of colors (up to 10) for progress bar subdivisions
 help_text = "08"
 border = "08"

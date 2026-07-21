@@ -121,3 +121,31 @@ func TestDoneModelFixedWidth(t *testing.T) {
 		t.Errorf("expected doneModel rendered width 44 when fullWidth=false, got %d", w)
 	}
 }
+
+func TestBarFgColorForTime(t *testing.T) {
+	colors := []lipgloss.Color{
+		lipgloss.Color("02"), // green (1st division)
+		lipgloss.Color("03"), // yellow (2nd division)
+		lipgloss.Color("01"), // red (3rd division)
+	}
+	duration := 60 * time.Second
+
+	tests := []struct {
+		remaining time.Duration
+		wantColor lipgloss.Color
+	}{
+		{60 * time.Second, colors[0]}, // 100% remaining -> division 1 (green)
+		{41 * time.Second, colors[0]}, // ~68% remaining -> division 1 (green)
+		{40 * time.Second, colors[1]}, // 66.6% remaining -> division 2 (yellow)
+		{21 * time.Second, colors[1]}, // ~35% remaining -> division 2 (yellow)
+		{20 * time.Second, colors[2]}, // 33.3% remaining -> division 3 (red)
+		{0 * time.Second, colors[2]},  // 0% remaining -> division 3 (red)
+	}
+
+	for _, tt := range tests {
+		got := BarFgColorForTime(tt.remaining, duration, colors)
+		if got != tt.wantColor {
+			t.Errorf("BarFgColorForTime(%v, %v) = %v, want %v", tt.remaining, duration, got, tt.wantColor)
+		}
+	}
+}

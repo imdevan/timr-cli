@@ -15,6 +15,7 @@ type Theme struct {
 	TimeStart     lipgloss.Color
 	BarBg         lipgloss.Color
 	BarFg         lipgloss.Color
+	BarFgColors   []lipgloss.Color
 	HelpText      lipgloss.Color
 	Border        lipgloss.Color
 
@@ -39,9 +40,22 @@ func ThemeFromConfig(cfg domain.Config) Theme {
 	timeRemaining := resolveColor(cfg.TimeRemaining, "14")
 	timeStart := resolveColor(cfg.TimeStart, "07")
 	barBg := resolveColor(cfg.BarBg, "08")
-	barFg := resolveColor(cfg.BarFg, "02")
 	helpText := resolveColor(cfg.HelpText, "08")
 	border := resolveColor(cfg.Border, "08")
+
+	var barFgColors []lipgloss.Color
+	for _, c := range cfg.BarFg {
+		trimmed := strings.TrimSpace(c)
+		if trimmed != "" {
+			barFgColors = append(barFgColors, resolveColor(trimmed, domain.DefaultConfig().BarFg[0]))
+		}
+	}
+	if len(barFgColors) == 0 {
+		for _, c := range domain.DefaultConfig().BarFg {
+			barFgColors = append(barFgColors, resolveColor(c, domain.DefaultConfig().BarFg[0]))
+		}
+	}
+	barFg := barFgColors[0]
 
 	rawColors := cfg.Rainbow.Colors
 	if len(rawColors) == 0 {
@@ -60,6 +74,7 @@ func ThemeFromConfig(cfg domain.Config) Theme {
 		TimeStart:     timeStart,
 		BarBg:         barBg,
 		BarFg:         barFg,
+		BarFgColors:   barFgColors,
 		HelpText:      helpText,
 		Border:        border,
 		RainbowBar:    cfg.Rainbow.Enabled && cfg.RainbowBar.Enabled,

@@ -21,7 +21,6 @@ func TestDefaultConfig(t *testing.T) {
 			"TimeRemaining": cfg.TimeRemaining,
 			"TimeStart":     cfg.TimeStart,
 			"BarBg":         cfg.BarBg,
-			"BarFg":         cfg.BarFg,
 			"HelpText":      cfg.HelpText,
 			"Border":        cfg.Border,
 		}
@@ -30,6 +29,9 @@ func TestDefaultConfig(t *testing.T) {
 			if value == "" {
 				t.Errorf("DefaultConfig().%s should not be empty", name)
 			}
+		}
+		if len(cfg.BarFg) == 0 {
+			t.Error("DefaultConfig().BarFg should not be empty")
 		}
 	})
 
@@ -43,8 +45,8 @@ func TestDefaultConfig(t *testing.T) {
 		if cfg.BarBg != "08" {
 			t.Errorf("DefaultConfig().BarBg = %q, want %q", cfg.BarBg, "08")
 		}
-		if cfg.BarFg != "02" {
-			t.Errorf("DefaultConfig().BarFg = %q, want %q", cfg.BarFg, "02")
+		if len(cfg.BarFg) != 3 || cfg.BarFg[0] != "02" || cfg.BarFg[1] != "03" || cfg.BarFg[2] != "01" {
+			t.Errorf("DefaultConfig().BarFg = %v, want %v", cfg.BarFg, []string{"02", "03", "01"})
 		}
 		if cfg.HelpText != "08" {
 			t.Errorf("DefaultConfig().HelpText = %q, want %q", cfg.HelpText, "08")

@@ -323,7 +323,6 @@ border = "06"
 		{"TimeRemaining", cfg.TimeRemaining, "10"},
 		{"TimeStart", cfg.TimeStart, "04"},
 		{"BarBg", cfg.BarBg, "05"},
-		{"BarFg", cfg.BarFg, "09"},
 		{"HelpText", cfg.HelpText, "11"},
 		{"Border", cfg.Border, "06"},
 	}
@@ -332,6 +331,9 @@ border = "06"
 		if tt.got != tt.expected {
 			t.Errorf("%s = %q, want %q", tt.name, tt.got, tt.expected)
 		}
+	}
+	if len(cfg.BarFg) != 1 || cfg.BarFg[0] != "09" {
+		t.Errorf("BarFg = %v, want %v", cfg.BarFg, []string{"09"})
 	}
 }
 
@@ -435,6 +437,52 @@ func TestManagerLoadsRainbowOption(t *testing.T) {
 		}
 		if len(cfg.Rainbow.Colors) != 2 || cfg.Rainbow.Colors[0] != "#ff0000" || cfg.Rainbow.Colors[1] != "#00ff00" {
 			t.Errorf("unexpected rainbow colors: %v", cfg.Rainbow.Colors)
+		}
+	})
+}
+
+func TestManagerLoadsBarFgOptions(t *testing.T) {
+	t.Run("loads bar_fg array of colors", func(t *testing.T) {
+		root := t.TempDir()
+		cwd := filepath.Join(root, "project")
+		_ = os.MkdirAll(cwd, 0o755)
+		t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
+
+		configPath := utils.ConfigPathGlobal()
+		_ = os.MkdirAll(filepath.Dir(configPath), 0o755)
+		_ = os.WriteFile(configPath, []byte(`bar_fg = ["#00ff00", "#ffff00", "#ff0000"]`+"\n"), 0o644)
+
+		manager := NewManager(cwd)
+		cfg, err := manager.Load()
+		if err != nil {
+			t.Fatalf("load: %v", err)
+		}
+		expected := []string{"#00ff00", "#ffff00", "#ff0000"}
+		if len(cfg.BarFg) != 3 || cfg.BarFg[0] != expected[0] || cfg.BarFg[1] != expected[1] || cfg.BarFg[2] != expected[2] {
+			t.Errorf("got BarFg %v, want %v", cfg.BarFg, expected)
+		}
+	})
+
+	t.Run("caps bar_fg array at 10 colors", func(t *testing.T) {
+		root := t.TempDir()
+		cwd := filepath.Join(root, "project")
+		_ = os.MkdirAll(cwd, 0o755)
+		t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
+
+		configPath := utils.ConfigPathGlobal()
+		_ = os.MkdirAll(filepath.Dir(configPath), 0o755)
+		_ = os.WriteFile(configPath, []byte(`bar_fg = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]`+"\n"), 0o644)
+
+		manager := NewManager(cwd)
+		cfg, err := manager.Load()
+		if err != nil {
+			t.Fatalf("load: %v", err)
+		}
+		if len(cfg.BarFg) != 10 {
+			t.Errorf("expected len(BarFg) to be 10, got %d", len(cfg.BarFg))
+		}
+		if cfg.BarFg[9] != "10" {
+			t.Errorf("expected 10th element to be '10', got %q", cfg.BarFg[9])
 		}
 	})
 }

@@ -22,7 +22,7 @@ type Config struct {
 	TimeRemaining      string        `toml:"time_remaining"`
 	TimeStart          string        `toml:"time_start"`
 	BarBg              string        `toml:"bar_bg"`
-	BarFg              string        `toml:"bar_fg"`
+	BarFg              []string      `toml:"bar_fg"`
 	HelpText           string        `toml:"help_text"`
 	UpdateTmuxWindow   bool          `toml:"update_tmux_window"`
 	TmuxProgressBar    bool          `toml:"tmux_progress_bar"`
@@ -48,7 +48,7 @@ func DefaultConfig() Config {
 		TimeRemaining:      "14",
 		TimeStart:          "07",
 		BarBg:              "08",
-		BarFg:              "02",
+		BarFg:              []string{"02", "03", "01"},
 		HelpText:           "08",
 		UpdateTmuxWindow:   false,
 		TmuxProgressBar:    true,

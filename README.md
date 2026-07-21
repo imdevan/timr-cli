@@ -2,7 +2,7 @@
 
 <img width="480" height="270" alt="screenshot-2026-02-23_16-30-13" src="https://github.com/user-attachments/assets/65386b56-f06f-47be-9063-5c947b30dc51" />
 
-A simple, beautiful, and feature-rich CLI timer.
+A simple cli timer
 
 ## Features
 
@@ -280,7 +280,7 @@ Configuration is stored at `$XDG_CONFIG_HOME/timr/config.toml` (typically `~/.co
 | `time_remaining` | string | `14` | Remaining time color |
 | `time_start` | string | `07` | Total/start duration color |
 | `bar_bg` | string | `08` | Background part of progress bar |
-| `bar_fg` | string | `02` | Foreground/filled part of progress bar |
+| `bar_fg` | string or []string | `["02", "03", "01"]` | Foreground/filled part of progress bar (single color or array up to 10 colors for time subdivisions) |
 | `help_text` | string | `08` | Key controls help text color |
 | `border` | string | `08` | Border color |
 
