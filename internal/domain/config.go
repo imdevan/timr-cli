@@ -18,6 +18,7 @@ type Config struct {
 	InteractiveDefault bool          `toml:"interactive_default"`
 	ListSpacing        string        `toml:"list_spacing"`
 	DefaultUnits       string        `toml:"default_units"`
+	DefaultTimer       string        `toml:"default_timer"`
 	AlarmSound         string        `toml:"alarm_sound"`
 	TimeRemaining      string        `toml:"time_remaining"`
 	TimeStart          string        `toml:"time_start"`
@@ -29,6 +30,7 @@ type Config struct {
 	TmuxInverted       bool          `toml:"tmux_inverted"`
 	FullWidth          bool          `toml:"full_width"`
 	FullTUI            bool          `toml:"full_tui"`
+	Pomodoro           []int         `toml:"pomodoro"`
 	Rainbow            RainbowOption `toml:"rainbow"`
 	RainbowBar         RainbowOption `toml:"rainbow_bar"`
 }
@@ -45,6 +47,7 @@ func DefaultConfig() Config {
 		InteractiveDefault: true,
 		ListSpacing:        "space",
 		DefaultUnits:       "minutes",
+		DefaultTimer:       "",
 		AlarmSound:         "",
 		TimeRemaining:      "14",
 		TimeStart:          "07",
@@ -56,6 +59,7 @@ func DefaultConfig() Config {
 		TmuxInverted:       false,
 		FullWidth:          true,
 		FullTUI:            true,
+		Pomodoro:           []int{25, 5, 25, 5, 25, 20},
 		Rainbow:            defaultRainbow,
 		RainbowBar:         defaultRainbow,
 	}

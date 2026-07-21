@@ -6,7 +6,7 @@ import (
 
 func TestRootCommandHasVersion(t *testing.T) {
 	cmd := newRootCmd()
-	versionFlag := cmd.Flags().Lookup("version")
+	versionFlag := cmd.Flag("version")
 	if versionFlag == nil {
 		t.Fatal("expected --version flag to be registered")
 	}
@@ -17,7 +17,7 @@ func TestRootCommandHasVersion(t *testing.T) {
 
 func TestRootCommandHasConfig(t *testing.T) {
 	cmd := newRootCmd()
-	configFlag := cmd.Flags().Lookup("config")
+	configFlag := cmd.Flag("config")
 	if configFlag == nil {
 		t.Fatal("expected --config flag to be registered")
 	}

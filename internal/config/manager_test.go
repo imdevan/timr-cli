@@ -416,6 +416,49 @@ func TestManagerLoadsFullTUI(t *testing.T) {
 	}
 }
 
+func TestManagerLoadsDefaultTimer(t *testing.T) {
+	root := t.TempDir()
+	cwd := filepath.Join(root, "project")
+	_ = os.MkdirAll(cwd, 0o755)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
+
+	configPath := utils.ConfigPathGlobal()
+	_ = os.MkdirAll(filepath.Dir(configPath), 0o755)
+	_ = os.WriteFile(configPath, []byte(`default_timer = "25m"`+"\n"), 0o644)
+
+	manager := NewManager(cwd)
+	cfg, err := manager.Load()
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+
+	if cfg.DefaultTimer != "25m" {
+		t.Errorf("expected default_timer to be '25m', got %q", cfg.DefaultTimer)
+	}
+}
+
+func TestManagerLoadsPomodoro(t *testing.T) {
+	root := t.TempDir()
+	cwd := filepath.Join(root, "project")
+	_ = os.MkdirAll(cwd, 0o755)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(root, "config"))
+
+	configPath := utils.ConfigPathGlobal()
+	_ = os.MkdirAll(filepath.Dir(configPath), 0o755)
+	_ = os.WriteFile(configPath, []byte("pomodoro = [30, 10, 30]\n"), 0o644)
+
+	manager := NewManager(cwd)
+	cfg, err := manager.Load()
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+
+	expected := []int{30, 10, 30}
+	if len(cfg.Pomodoro) != 3 || cfg.Pomodoro[0] != 30 || cfg.Pomodoro[1] != 10 || cfg.Pomodoro[2] != 30 {
+		t.Errorf("expected pomodoro sequence %v, got %v", expected, cfg.Pomodoro)
+	}
+}
+
 
 func TestManagerLoadsRainbowOption(t *testing.T) {
 	t.Run("loads rainbow = false", func(t *testing.T) {

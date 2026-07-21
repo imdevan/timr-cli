@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -71,6 +72,11 @@ func renderConfigTemplate(cfg domain.Config) string {
 	builder.WriteString("# General\n")
 	builder.WriteString(fmt.Sprintf("# editor = %q\n", cfg.Editor))
 	builder.WriteString(fmt.Sprintf("# default_units = %q\n", cfg.DefaultUnits))
+	var pomodoroParts []string
+	for _, n := range cfg.Pomodoro {
+		pomodoroParts = append(pomodoroParts, strconv.Itoa(n))
+	}
+	builder.WriteString(fmt.Sprintf("# pomodoro = [%s]  # Sequence of minutes for pomodoro command\n", strings.Join(pomodoroParts, ", ")))
 	builder.WriteString("# alarm_sound = \"/path/to/file.mp3\"  # single file, directory, or CSV list (e.g. \"/a.mp3, ~/Music/\")\n")
 	builder.WriteString("\n# CLI behavior\n")
 	builder.WriteString(fmt.Sprintf("# interactive_default = %t\n", cfg.InteractiveDefault))

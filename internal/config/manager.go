@@ -90,6 +90,7 @@ type partialConfig struct {
 	InteractiveDefault   *bool   `toml:"interactive_default"`
 	ListSpacing          *string `toml:"list_spacing"`
 	DefaultUnits         *string `toml:"default_units"`
+	DefaultTimer         *string `toml:"default_timer"`
 	AlarmSound           *string `toml:"alarm_sound"`
 	TimeRemaining        *string `toml:"time_remaining"`
 	TimeStart            *string `toml:"time_start"`
@@ -101,6 +102,7 @@ type partialConfig struct {
 	TmuxInverted         *bool `toml:"tmux_inverted"`
 	FullWidth            *bool `toml:"full_width"`
 	FullTUI              *bool `toml:"full_tui"`
+	Pomodoro             any   `toml:"pomodoro"`
 	Rainbow              any   `toml:"rainbow"`
 	RainbowBar           any   `toml:"rainbow_bar"`
 }
@@ -136,6 +138,9 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	if partial.DefaultUnits != nil {
 		config.DefaultUnits = *partial.DefaultUnits
 	}
+	if partial.DefaultTimer != nil {
+		config.DefaultTimer = *partial.DefaultTimer
+	}
 	if partial.AlarmSound != nil {
 		config.AlarmSound = *partial.AlarmSound
 	}
@@ -168,6 +173,9 @@ func applyPartial(config *domain.Config, partial *partialConfig) {
 	}
 	if partial.FullTUI != nil {
 		config.FullTUI = *partial.FullTUI
+	}
+	if partial.Pomodoro != nil {
+		config.Pomodoro = parsePomodoro(partial.Pomodoro)
 	}
 	if partial.Rainbow != nil {
 		opt := parseRainbowOption(partial.Rainbow)
@@ -231,6 +239,45 @@ func parseBarFg(val any) []string {
 		return domain.DefaultConfig().BarFg
 	}
 	return colors
+}
+
+func parsePomodoro(val any) []int {
+	var seq []int
+	switch v := val.(type) {
+	case []any:
+		for _, item := range v {
+			switch n := item.(type) {
+			case int:
+				if n > 0 {
+					seq = append(seq, n)
+				}
+			case int64:
+				if n > 0 {
+					seq = append(seq, int(n))
+				}
+			case float64:
+				if n > 0 {
+					seq = append(seq, int(n))
+				}
+			}
+		}
+	case []int:
+		for _, n := range v {
+			if n > 0 {
+				seq = append(seq, n)
+			}
+		}
+	case []int64:
+		for _, n := range v {
+			if n > 0 {
+				seq = append(seq, int(n))
+			}
+		}
+	}
+	if len(seq) == 0 {
+		return domain.DefaultConfig().Pomodoro
+	}
+	return seq
 }
 
 func expandPath(value string) string {

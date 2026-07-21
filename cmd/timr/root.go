@@ -74,135 +74,16 @@ func newRootCmd() *cobra.Command {
 
 			theme := ui.ThemeFromConfig(cfg)
 
-			// If a duration argument is provided, start a new timer
+			var durationStr string
 			if len(args) > 0 {
-				durationStr := args[0]
-				d, err := utils.ParseDuration(durationStr, cfg.DefaultUnits)
-				if err != nil {
-					return fmt.Errorf("failed to parse duration %q: %w", durationStr, err)
-				}
+				durationStr = args[0]
+			} else if strings.TrimSpace(cfg.DefaultTimer) != "" {
+				durationStr = strings.TrimSpace(cfg.DefaultTimer)
+			}
 
-				endTime := time.Now().Add(d)
-
-				// Detached/background mode
-				if opts.detached {
-					pid, err := startDaemon(durationStr, endTime)
-					if err != nil {
-						return fmt.Errorf("failed to start background timer: %w", err)
-					}
-					cmd.Printf("Timer of %s started in background (PID: %d, ending at %s)\n",
-						formatDuration(d), pid, endTime.Format("15:04:05"))
-					return nil
-				}
-
-				// Foreground mode
-				isInteractive := cfg.InteractiveDefault
-				if cmd.Flags().Changed("interactive") {
-					isInteractive = opts.interactive
-				}
-
-				// Retrieve tmux window name if needed
-				var originalTmux string
-				if cfg.UpdateTmuxWindow && os.Getenv("TMUX") != "" {
-					if name, err := getTmuxWindowName(); err == nil {
-						originalTmux = name
-					}
-				}
-
-				var finalModel tea.Model
-				var pErr error
-				if isInteractive {
-					m := timerModel{
-						duration:           d,
-						remaining:          d,
-						lastTickTime:       time.Now(),
-						endTime:            endTime,
-						theme:              theme,
-						alarmSound:         alarm.Resolve(cfg),
-						tickInterval:       100 * time.Millisecond,
-						updateTmux:         cfg.UpdateTmuxWindow,
-						tmuxProgressBar:    cfg.TmuxProgressBar,
-						tmuxInverted:       cfg.TmuxInverted,
-						originalTmuxWindow: originalTmux,
-						lastTmuxSeconds:    -1,
-						rainbowBar:         cfg.Rainbow.Enabled && cfg.RainbowBar.Enabled,
-						fullWidth:          cfg.FullWidth,
-						fullTUI:            cfg.FullTUI,
-					}
-					p := tea.NewProgram(m, makeProgramOpts(cfg)...)
-					finalModel, pErr = p.Run()
-					if pErr != nil {
-						return pErr
-					}
-				} else {
-					// Non-interactive simple countdown
-					ticker := time.NewTicker(1 * time.Second)
-					defer ticker.Stop()
-
-					remaining := d
-					lastTmuxSec := -1
-					for remaining > 0 {
-						fmt.Printf("\rTimer: %s remaining... [Ctrl+C to cancel]", formatDuration(remaining))
-
-						if cfg.UpdateTmuxWindow && os.Getenv("TMUX") != "" {
-							remSec := int(remaining.Round(time.Second).Seconds())
-							if remSec != lastTmuxSec {
-								lastTmuxSec = remSec
-								setTmuxWindowName(timeremaining.Format(remaining, d, false, cfg.TmuxProgressBar, cfg.TmuxInverted))
-							}
-						}
-
-						select {
-						case <-ticker.C:
-							remaining = time.Until(endTime)
-						}
-					}
-					if cfg.UpdateTmuxWindow && os.Getenv("TMUX") != "" {
-						setTmuxWindowName("⏰ done!")
-					}
-				}
-
-				// If it is interactive and got cancelled, do not play sound
-				if isInteractive {
-					if m, ok := finalModel.(timerModel); ok && m.cancelled {
-						return nil
-					}
-				}
-
-				// Start alarm in background; close stopChan when it finishes.
-				stopChan := make(chan struct{})
-				playCmd := startPlayAlarmCmd(alarm.Resolve(cfg))
-				if playCmd != nil {
-					go func() {
-						_ = playCmd.Wait()
-						select {
-						case <-stopChan:
-						default:
-							close(stopChan)
-						}
-					}()
-				} else {
-					// No alarm file — close immediately so doneModel exits on keypress only.
-					// Leave stopChan open; doneModel will exit when a key is pressed.
-					_ = stopChan // keep reference alive
-				}
-
-				// Run the animated done screen.
-				done := doneModel{theme: theme, stopCh: stopChan, fullWidth: cfg.FullWidth, fullTUI: cfg.FullTUI}
-				if _, err := tea.NewProgram(done, makeProgramOpts(cfg)...).Run(); err != nil {
-					_ = err // best-effort
-				}
-
-				// Stop any still-running alarm.
-				if playCmd != nil && playCmd.Process != nil {
-					_ = playCmd.Process.Kill()
-				}
-
-				// Restore Tmux window name on clean exit.
-				if cfg.UpdateTmuxWindow && originalTmux != "" {
-					setTmuxWindowName(originalTmux)
-				}
-				return nil
+			if durationStr != "" {
+				_, err := runSingleTimer(cmd, cfg, theme, durationStr, opts)
+				return err
 			}
 
 			// If no duration argument is provided, show/monitor running timer(s)
@@ -265,15 +146,16 @@ func newRootCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.configPath, "config", "c", "", "config file path")
+	cmd.PersistentFlags().StringVarP(&opts.configPath, "config", "c", "", "config file path")
 	cmd.Flags().BoolVarP(&opts.showVersion, "version", "v", false, "print version information")
-	cmd.Flags().BoolVarP(&opts.interactive, "interactive", "i", false, "show live countdown timer TUI")
-	cmd.Flags().BoolVarP(&opts.detached, "detached", "d", false, "run timer in background")
+	cmd.PersistentFlags().BoolVarP(&opts.interactive, "interactive", "i", false, "show live countdown timer TUI")
+	cmd.PersistentFlags().BoolVarP(&opts.detached, "detached", "d", false, "run timer in background")
 
 	cmd.AddCommand(newConfigCmd())
 	cmd.AddCommand(newCompletionCmd())
 	cmd.AddCommand(newStopCmd())
 	cmd.AddCommand(newDaemonRunCmd())
+	cmd.AddCommand(newPomodoroCmd(opts))
 
 	return cmd
 }
@@ -407,4 +289,132 @@ func makeProgramOpts(cfg domain.Config) []tea.ProgramOption {
 		opts = append(opts, tea.WithAltScreen())
 	}
 	return opts
+}
+
+func runSingleTimer(cmd *cobra.Command, cfg domain.Config, theme ui.Theme, durationStr string, opts *rootOptions) (bool, error) {
+	d, err := utils.ParseDuration(durationStr, cfg.DefaultUnits)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse duration %q: %w", durationStr, err)
+	}
+
+	endTime := time.Now().Add(d)
+
+	// Detached/background mode
+	if opts.detached {
+		pid, err := startDaemon(durationStr, endTime)
+		if err != nil {
+			return false, fmt.Errorf("failed to start background timer: %w", err)
+		}
+		cmd.Printf("Timer of %s started in background (PID: %d, ending at %s)\n",
+			formatDuration(d), pid, endTime.Format("15:04:05"))
+		return false, nil
+	}
+
+	// Foreground mode
+	isInteractive := cfg.InteractiveDefault
+	if cmd.Flags().Changed("interactive") {
+		isInteractive = opts.interactive
+	}
+
+	// Retrieve tmux window name if needed
+	var originalTmux string
+	if cfg.UpdateTmuxWindow && os.Getenv("TMUX") != "" {
+		if name, err := getTmuxWindowName(); err == nil {
+			originalTmux = name
+		}
+	}
+
+	var finalModel tea.Model
+	var pErr error
+	if isInteractive {
+		m := timerModel{
+			duration:           d,
+			remaining:          d,
+			lastTickTime:       time.Now(),
+			endTime:            endTime,
+			theme:              theme,
+			alarmSound:         alarm.Resolve(cfg),
+			tickInterval:       100 * time.Millisecond,
+			updateTmux:         cfg.UpdateTmuxWindow,
+			tmuxProgressBar:    cfg.TmuxProgressBar,
+			tmuxInverted:       cfg.TmuxInverted,
+			originalTmuxWindow: originalTmux,
+			lastTmuxSeconds:    -1,
+			rainbowBar:         cfg.Rainbow.Enabled && cfg.RainbowBar.Enabled,
+			fullWidth:          cfg.FullWidth,
+			fullTUI:            cfg.FullTUI,
+		}
+		p := tea.NewProgram(m, makeProgramOpts(cfg)...)
+		finalModel, pErr = p.Run()
+		if pErr != nil {
+			return false, pErr
+		}
+	} else {
+		// Non-interactive simple countdown
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+
+		remaining := d
+		lastTmuxSec := -1
+		for remaining > 0 {
+			fmt.Printf("\rTimer: %s remaining... [Ctrl+C to cancel]", formatDuration(remaining))
+
+			if cfg.UpdateTmuxWindow && os.Getenv("TMUX") != "" {
+				remSec := int(remaining.Round(time.Second).Seconds())
+				if remSec != lastTmuxSec {
+					lastTmuxSec = remSec
+					setTmuxWindowName(timeremaining.Format(remaining, d, false, cfg.TmuxProgressBar, cfg.TmuxInverted))
+				}
+			}
+
+			select {
+			case <-ticker.C:
+				remaining = time.Until(endTime)
+			}
+		}
+		if cfg.UpdateTmuxWindow && os.Getenv("TMUX") != "" {
+			setTmuxWindowName("⏰ done!")
+		}
+	}
+
+	// If it is interactive and got cancelled, do not play sound and return cancelled
+	if isInteractive {
+		if m, ok := finalModel.(timerModel); ok && m.cancelled {
+			return true, nil
+		}
+	}
+
+	// Start alarm in background; close stopChan when it finishes.
+	stopChan := make(chan struct{})
+	playCmd := startPlayAlarmCmd(alarm.Resolve(cfg))
+	if playCmd != nil {
+		go func() {
+			_ = playCmd.Wait()
+			select {
+			case <-stopChan:
+			default:
+				close(stopChan)
+			}
+		}()
+	} else {
+		// No alarm file — close immediately so doneModel exits on keypress only.
+		_ = stopChan
+	}
+
+	// Run the animated done screen.
+	done := doneModel{theme: theme, stopCh: stopChan, fullWidth: cfg.FullWidth, fullTUI: cfg.FullTUI}
+	if _, err := tea.NewProgram(done, makeProgramOpts(cfg)...).Run(); err != nil {
+		_ = err
+	}
+
+	// Stop any still-running alarm.
+	if playCmd != nil && playCmd.Process != nil {
+		_ = playCmd.Process.Kill()
+	}
+
+	// Restore Tmux window name on clean exit.
+	if cfg.UpdateTmuxWindow && originalTmux != "" {
+		setTmuxWindowName(originalTmux)
+	}
+	return false, nil
 }

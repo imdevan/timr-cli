@@ -269,6 +269,8 @@ Configuration is stored at `$XDG_CONFIG_HOME/timr/config.toml` (typically `~/.co
 |--------|------|---------|-------------|
 | `editor` | string | `nvim` | Editor opened by `config` and other editor-aware commands |
 | `default_units` | string | `minutes` | Default units to use when duration is a raw number (`seconds`, `minutes`, `hours`) |
+| `default_timer` | string | `""` | Default timer duration when run with no arguments (when empty, displays active timer state) |
+| `pomodoro` | []int | `[25, 5, 25, 5, 25, 20]` | Array of minutes for Pomodoro sequence (`timr pomodoro` / `timr p`) |
 | `alarm_sound` | string | `""` | Path to a file, directory (picks random media file), or comma-separated list of files/dirs |
 | `interactive_default` | bool | `true` | Start in interactive TUI mode by default |
 | `update_tmux_window` | bool | `false` | When true, rename the active tmux window to the remaining time |

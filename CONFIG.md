@@ -12,6 +12,8 @@ The following options can be set in your configuration file:
 |--------|------|---------|-------------|
 | `editor` | string | `nvim` | Editor to use for editing config files |
 | `default_units` | string | `minutes` | Default units when raw number is given (`seconds`, `minutes`, `hours`) |
+| `default_timer` | string | `""` | Default timer duration when run with no arguments (when empty, displays active timer state) |
+| `pomodoro` | []int | `[25, 5, 25, 5, 25, 20]` | Array of minutes for Pomodoro sequence (`timr pomodoro` / `timr p`) |
 | `alarm_sound` | string | `""` | Path to a file, directory (picks random media file), or comma-separated list of files/dirs |
 | `interactive_default` | bool | `true` | Start in interactive mode by default when running a timer |
 | `update_tmux_window` | bool | `false` | When true, rename the active tmux window to the remaining time |
