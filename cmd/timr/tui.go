@@ -228,10 +228,16 @@ func (m timerModel) View() string {
 	}
 
 	width := 40
-	borderStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(m.theme.Border).
-		Padding(1, 2)
+	var borderStyle lipgloss.Style
+	if m.theme.ShowBorder {
+		borderStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(m.theme.Border).
+			Padding(1, 2)
+	} else {
+		borderStyle = lipgloss.NewStyle().
+			Padding(1, 2)
+	}
 
 	if m.fullWidth && m.termWidth > 0 {
 		innerWidth := m.termWidth - 6
@@ -262,8 +268,15 @@ func (m timerModel) View() string {
 
 		barHeight := 8
 		if m.fullTUI && m.termHeight > 0 {
-			// Overhead: border (2) + padding (2) + help gap (2) + help (1) + trailing newline (1) = 8
-			availHeight := m.termHeight - 8
+			// Overhead: padding (2) + trailing newline (1) = 3
+			overhead := 3
+			if m.theme.ShowBorder {
+				overhead += 2 // border top + bottom
+			}
+			if m.theme.ShowHelpText {
+				overhead += 3 // help gap (2) + help line (1)
+			}
+			availHeight := m.termHeight - overhead
 			if availHeight > 3 {
 				barHeight = availHeight
 			}
@@ -339,17 +352,13 @@ func (m timerModel) View() string {
 		barCentered := lipgloss.NewStyle().Align(lipgloss.Center).Render(barVertical)
 		mainBlock := lipgloss.JoinHorizontal(lipgloss.Top, leftContent, "    ", barCentered)
 
-		var helpStr string
-		if m.isMonitor {
-			helpStr = "[q/Esc] exit monitoring"
-		} else {
-			helpStr = "[Space] pause/resume • [r] reset • [q/Esc] cancel"
-		}
-		styledHelp := lipgloss.NewStyle().Foreground(m.theme.HelpText).Render(helpStr)
-
 		// Set border width so content can be centered horizontally
 		if m.termWidth > 0 {
-			boxWidth := m.termWidth - 2
+			borderInset := 2
+			if !m.theme.ShowBorder {
+				borderInset = 0
+			}
+			boxWidth := m.termWidth - borderInset
 			if boxWidth < 1 {
 				boxWidth = 1
 			}
@@ -361,9 +370,21 @@ func (m timerModel) View() string {
 			innerWidth = lipgloss.Width(mainBlock)
 		}
 		mainBlockCentered := lipgloss.NewStyle().Width(innerWidth).Align(lipgloss.Center).Render(mainBlock)
-		styledHelpCentered := lipgloss.NewStyle().Width(innerWidth).Align(lipgloss.Center).Render(styledHelp)
 
-		inner := mainBlockCentered + "\n\n" + styledHelpCentered
+		var inner string
+		if m.theme.ShowHelpText {
+			var helpStr string
+			if m.isMonitor {
+				helpStr = "[q/Esc] exit monitoring"
+			} else {
+				helpStr = "[Space] pause/resume • [r] reset • [q/Esc] cancel"
+			}
+			styledHelp := lipgloss.NewStyle().Foreground(m.theme.HelpText).Render(helpStr)
+			styledHelpCentered := lipgloss.NewStyle().Width(innerWidth).Align(lipgloss.Center).Render(styledHelp)
+			inner = mainBlockCentered + "\n\n" + styledHelpCentered
+		} else {
+			inner = mainBlockCentered
+		}
 
 		view := borderStyle.Render(inner) + "\n"
 		if m.fullTUI && m.termWidth > 0 && m.termHeight > 0 {
@@ -416,18 +437,21 @@ func (m timerModel) View() string {
 		lipgloss.NewStyle().Foreground(m.theme.BarBg).Render(emptyBar)
 
 	// 3. Build help / controls
-	var helpStr string
-	if m.isMonitor {
-		helpStr = "[q/Esc] exit monitoring"
+	var inner string
+	if m.theme.ShowHelpText {
+		var helpStr string
+		if m.isMonitor {
+			helpStr = "[q/Esc] exit monitoring"
+		} else {
+			helpStr = "[Space] pause/resume • [r] reset • [q/Esc] cancel"
+		}
+		styledHelp := lipgloss.NewStyle().Foreground(m.theme.HelpText).Render(helpStr)
+		inner = firstLine + "\n" + barStr + "\n" + styledHelp
 	} else {
-		helpStr = "[Space] pause/resume • [r] reset • [q/Esc] cancel"
+		inner = firstLine + "\n" + barStr
 	}
-	styledHelp := lipgloss.NewStyle().Foreground(m.theme.HelpText).Render(helpStr)
 
-	// 4. Combine inner view
-	inner := firstLine + "\n" + barStr + "\n" + styledHelp
-
-	// 5. Wrap with a border using lipgloss
+	// 4. Wrap with a border using lipgloss
 	view := borderStyle.Render(inner) + "\n"
 	if m.fullTUI && m.termWidth > 0 && m.termHeight > 0 {
 		return ui.PlaceVertically(m.termWidth, m.termHeight, view)
@@ -575,10 +599,16 @@ func (d doneModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (d doneModel) View() string {
 	width := 40
-	borderStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(d.theme.Border).
-		Padding(0, 1)
+	var borderStyle lipgloss.Style
+	if d.theme.ShowBorder {
+		borderStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(d.theme.Border).
+			Padding(0, 1)
+	} else {
+		borderStyle = lipgloss.NewStyle().
+			Padding(0, 1)
+	}
 
 	if d.fullWidth && d.termWidth > 0 {
 		innerWidth := d.termWidth - 4
@@ -599,14 +629,16 @@ func (d doneModel) View() string {
 			Bold(true).
 			Render("⏰ Time's up!")
 
-		helpLine := lipgloss.NewStyle().
-			Foreground(d.theme.HelpText).
-			Render("Playing alarm... [Press any key to stop]")
-
 		barHeight := 8
 		if d.fullTUI && d.termHeight > 0 {
-			// Overhead: border (2) + help gap (2) + help (1) + trailing newline (1) = 6
-			availHeight := d.termHeight - 6
+			overhead := 1 // trailing newline
+			if d.theme.ShowBorder {
+				overhead += 2 // border top + bottom
+			}
+			if d.theme.ShowHelpText {
+				overhead += 3 // help gap (2) + help line (1)
+			}
+			availHeight := d.termHeight - overhead
 			if availHeight > 3 {
 				barHeight = availHeight
 			}
@@ -654,7 +686,11 @@ func (d doneModel) View() string {
 
 		// Set border width so content can be centered horizontally
 		if d.termWidth > 0 {
-			boxWidth := d.termWidth - 2
+			borderInset := 2
+			if !d.theme.ShowBorder {
+				borderInset = 0
+			}
+			boxWidth := d.termWidth - borderInset
 			if boxWidth < 1 {
 				boxWidth = 1
 			}
@@ -666,9 +702,17 @@ func (d doneModel) View() string {
 			innerWidth = lipgloss.Width(mainBlock)
 		}
 		mainBlockCentered := lipgloss.NewStyle().Width(innerWidth).Align(lipgloss.Center).Render(mainBlock)
-		helpCentered := lipgloss.NewStyle().Width(innerWidth).Align(lipgloss.Center).Render(helpLine)
 
-		inner := mainBlockCentered + "\n\n" + helpCentered
+		var inner string
+		if d.theme.ShowHelpText {
+			helpLine := lipgloss.NewStyle().
+				Foreground(d.theme.HelpText).
+				Render("Playing alarm... [Press any key to stop]")
+			helpCentered := lipgloss.NewStyle().Width(innerWidth).Align(lipgloss.Center).Render(helpLine)
+			inner = mainBlockCentered + "\n\n" + helpCentered
+		} else {
+			inner = mainBlockCentered
+		}
 
 		view := borderStyle.Render(inner) + "\n"
 		if d.fullTUI && d.termWidth > 0 && d.termHeight > 0 {
@@ -703,11 +747,15 @@ func (d doneModel) View() string {
 		barStr = strings.Repeat(" ", width)
 	}
 
-	helpLine := lipgloss.NewStyle().
-		Foreground(d.theme.HelpText).
-		Render("Playing alarm... [Press any key to stop]")
-
-	inner := timesUpLine + "\n" + barStr + "\n" + helpLine
+	var inner string
+	if d.theme.ShowHelpText {
+		helpLine := lipgloss.NewStyle().
+			Foreground(d.theme.HelpText).
+			Render("Playing alarm... [Press any key to stop]")
+		inner = timesUpLine + "\n" + barStr + "\n" + helpLine
+	} else {
+		inner = timesUpLine + "\n" + barStr
+	}
 
 	view := borderStyle.Render(inner) + "\n"
 	if d.fullTUI && d.termWidth > 0 && d.termHeight > 0 {
