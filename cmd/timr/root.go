@@ -300,9 +300,7 @@ func startDaemon(duration string, endTime time.Time) (int, error) {
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setsid: true,
-	}
+	detachProcess(cmd)
 
 	if err := cmd.Start(); err != nil {
 		return 0, err
